@@ -1,0 +1,31 @@
+{
+  "name": "02_ejs_components",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:css\"",
+    "dev:server": "nodemon --watch src --watch views --ext ts,ejs --exec tsx src/server.ts",
+    "dev:css": "postcss public/css/input.css -o public/css/main.css --watch",
+    "build": "npm run build:css && tsc",
+    "build:css": "postcss public/css/input.css -o public/css/main.css",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-ejs-layouts": "^2.5.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.1",
+    "@types/node": "^20",
+    "concurrently": "^9.1.2",
+    "nodemon": "^3.1.9",
+    "postcss": "^8",
+    "postcss-cli": "^11",
+    "tailwindcss": "^4",
+    "tsx": "^4.19.4",
+    "typescript": "^5"
+  }
+}

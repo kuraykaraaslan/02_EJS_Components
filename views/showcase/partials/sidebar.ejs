@@ -1,0 +1,172 @@
+<!-- ── DESKTOP SIDEBAR ──────────────────────────────────── -->
+<aside
+  id="sidebar"
+  class="hidden lg:flex flex-col h-full shrink-0 border-r border-border bg-surface-raised overflow-hidden"
+>
+  <!-- Logo row -->
+  <div class="flex items-center h-14 border-b border-border shrink-0 overflow-hidden">
+    <div class="px-4 sidebar-full-only whitespace-nowrap">
+      <p class="text-sm font-semibold text-text-primary">UI Showcase</p>
+      <p class="text-xs text-text-secondary">EJS templates</p>
+    </div>
+    <div class="sidebar-compact-only w-full justify-center hidden">
+      <span class="text-sm font-black text-primary select-none">UI</span>
+    </div>
+  </div>
+
+  <!-- Collapse toggle -->
+  <div class="flex items-center border-b border-border shrink-0 px-2 py-2">
+    <div class="flex-1 sidebar-full-only"></div>
+    <button
+      id="sidebar-collapse-btn"
+      aria-label="Collapse sidebar"
+      class="p-1.5 rounded text-text-secondary hover:text-text-primary hover:bg-surface-overlay transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+    >
+      <i id="collapse-icon" class="fa-solid fa-chevron-left" style="width:1rem;height:1rem;transition:transform 200ms" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-4" aria-label="Component navigation">
+
+    <% if (navGroups.length === 0) { %>
+      <div class="px-3 py-4 text-center sidebar-full-only">
+        <p class="text-xs text-text-disabled">No items yet.</p>
+        <p class="text-[10px] text-text-disabled mt-1">Add entries to showcase.menu.ts</p>
+      </div>
+    <% } %>
+
+    <% navGroups.forEach(function(group, gi) { %>
+      <div class="nav-group">
+
+        <% if (group.sectionStart) { %>
+          <div class="sidebar-full-only flex items-center gap-2 px-3 pt-1 pb-1">
+            <div class="flex-1 h-px bg-border"></div>
+            <span class="text-[10px] font-semibold uppercase tracking-widest text-text-disabled shrink-0"><%= group.sectionStart %></span>
+            <div class="flex-1 h-px bg-border"></div>
+          </div>
+          <div class="sidebar-compact-only hidden px-2 py-1.5">
+            <div class="h-px bg-border"></div>
+          </div>
+        <% } %>
+
+        <% if (group.collapsible) { %>
+          <button
+            type="button"
+            data-group="<%= gi %>"
+            aria-expanded="true"
+            class="group-toggle-btn sidebar-full-only w-full flex items-center justify-between px-3 py-1 rounded-md mb-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus <%= group.items.some(function(i){ return i.active; }) ? 'text-text-primary' : 'text-text-disabled hover:text-text-secondary' %>"
+          >
+            <span class="text-[10px] font-semibold uppercase tracking-widest"><%= group.label %></span>
+            <i class="fa-solid fa-chevron-down" style="width:.75rem;height:.75rem;transition:transform 200ms" aria-hidden="true"></i>
+          </button>
+        <% } else { %>
+          <p class="sidebar-full-only text-[10px] font-semibold uppercase tracking-widest text-text-disabled px-3 mb-1"><%= group.label %></p>
+        <% } %>
+
+        <div class="group-items space-y-0.5" data-group="<%= gi %>">
+          <% group.items.forEach(function(item) { %>
+            <% var isActive = item.active || item.id === selectedId; %>
+            <% var href = item.href ? item.href : '/?id=' + item.id; %>
+            <% var isExternal = item.href && !item.href.startsWith('/'); %>
+            <a
+              href="<%= href %>"
+              <% if (isExternal) { %>target="_blank" rel="noopener noreferrer"<% } %>
+              aria-current="<%= isActive ? 'page' : 'false' %>"
+              title="<%= item.title %> (<%= item.category %>)"
+              class="sidebar-item flex items-center gap-2.5 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus px-3 py-2 <%= isActive ? 'bg-primary-subtle text-primary font-medium' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
+            >
+              <span class="sidebar-item-icon flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold shrink-0 <%= isActive ? 'bg-primary text-primary-fg' : 'bg-surface-sunken text-text-secondary' %>"><%= item.abbr %></span>
+              <span class="sidebar-full-only flex-1 truncate"><%= item.title %></span>
+              <span class="sidebar-full-only text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0"
+                style="<%= catStyle[item.category] || 'background:var(--surface-sunken);color:var(--text-secondary)' %>"
+              ><%= item.category %></span>
+            </a>
+          <% }); %>
+        </div>
+
+      </div>
+    <% }); %>
+
+  </nav>
+
+  <!-- Footer -->
+  <div class="border-t border-border shrink-0">
+    <div class="sidebar-full-only p-3 flex items-center gap-2">
+      <span class="w-7 h-7 rounded-full bg-primary-subtle flex items-center justify-center text-xs font-bold text-primary shrink-0" aria-hidden="true">D</span>
+      <div class="min-w-0">
+        <p class="text-xs font-semibold text-text-primary truncate">Developer</p>
+        <p class="text-[10px] text-text-secondary truncate">EJS Templates</p>
+      </div>
+    </div>
+    <div class="sidebar-compact-only hidden p-3 justify-center">
+      <span class="w-7 h-7 rounded-full bg-primary-subtle flex items-center justify-center text-xs font-bold text-primary" aria-hidden="true">D</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MOBILE OVERLAY SIDEBAR ───────────────────────────── -->
+<div
+  id="mobile-sidebar-overlay"
+  class="lg:hidden fixed inset-0 z-50 opacity-0 pointer-events-none transition-opacity duration-200"
+  aria-hidden="true"
+>
+  <div id="mobile-backdrop" class="absolute inset-0 bg-black/50"></div>
+
+  <aside
+    id="mobile-sidebar"
+    class="absolute left-0 top-0 h-full w-72 bg-surface-raised flex flex-col shadow-xl transition-transform duration-200 -translate-x-full overflow-hidden"
+  >
+    <div class="flex items-center justify-between h-14 border-b border-border px-4 shrink-0">
+      <div>
+        <p class="text-sm font-semibold text-text-primary">UI Showcase</p>
+        <p class="text-xs text-text-secondary">EJS templates</p>
+      </div>
+      <button
+        onclick="closeMobileSidebar()"
+        class="p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface-overlay transition-colors"
+        aria-label="Close sidebar"
+      >
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-4" aria-label="Component navigation (mobile)">
+      <% navGroups.forEach(function(group) { %>
+        <div>
+          <% if (group.sectionStart) { %>
+            <div class="flex items-center gap-2 px-3 pt-1 pb-1">
+              <div class="flex-1 h-px bg-border"></div>
+              <span class="text-[10px] font-semibold uppercase tracking-widest text-text-disabled shrink-0"><%= group.sectionStart %></span>
+              <div class="flex-1 h-px bg-border"></div>
+            </div>
+          <% } %>
+          <p class="text-[10px] font-semibold uppercase tracking-widest text-text-disabled px-3 mb-1"><%= group.label %></p>
+          <div class="space-y-0.5">
+            <% group.items.forEach(function(item) { %>
+              <% var isActive = item.active || item.id === selectedId; %>
+              <% var href = item.href ? item.href : '/?id=' + item.id; %>
+              <a
+                href="<%= href %>"
+                aria-current="<%= isActive ? 'page' : 'false' %>"
+                onclick="closeMobileSidebar()"
+                class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus <%= isActive ? 'bg-primary-subtle text-primary font-medium' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
+              >
+                <span class="flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold shrink-0 <%= isActive ? 'bg-primary text-primary-fg' : 'bg-surface-sunken text-text-secondary' %>"><%= item.abbr %></span>
+                <span class="flex-1 truncate"><%= item.title %></span>
+                <span class="text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0"
+                  style="<%= catStyle[item.category] || 'background:var(--surface-sunken);color:var(--text-secondary)' %>"
+                ><%= item.category %></span>
+              </a>
+            <% }); %>
+          </div>
+        </div>
+      <% }); %>
+      <% if (navGroups.length === 0) { %>
+        <div class="px-3 py-6 text-center">
+          <p class="text-xs text-text-disabled">No items yet</p>
+        </div>
+      <% } %>
+    </nav>
+  </aside>
+</div>

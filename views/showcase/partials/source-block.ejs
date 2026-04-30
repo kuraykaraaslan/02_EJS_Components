@@ -1,0 +1,27 @@
+<div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+  <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-border bg-surface-overlay">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="text-text-disabled text-xs shrink-0 select-none" aria-hidden="true">⠿</span>
+      <span class="text-sm font-semibold text-text-primary">Source</span>
+      <span class="font-mono text-xs text-text-secondary bg-surface-sunken px-2 py-0.5 rounded truncate">
+        <%= selected.filePath %>
+      </span>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button
+        type="button"
+        class="copy-btn px-2.5 py-1 text-xs rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus bg-surface-overlay text-text-secondary hover:text-text-primary hover:bg-surface-sunken"
+        data-code="<%- encodeURIComponent(selected.sourceCode) %>"
+      >Copy</button>
+      <button
+        type="button"
+        id="source-toggle-btn"
+        aria-expanded="false"
+        class="px-2.5 py-1 text-xs rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus bg-surface-overlay text-text-secondary hover:text-text-primary hover:bg-surface-sunken"
+      >Expand</button>
+    </div>
+  </div>
+  <div id="source-content" class="hidden bg-surface-sunken overflow-x-auto">
+    <pre class="px-5 py-5 text-sm font-mono text-text-primary leading-relaxed"><code><%- selected.sourceCode %></code></pre>
+  </div>
+</div>
