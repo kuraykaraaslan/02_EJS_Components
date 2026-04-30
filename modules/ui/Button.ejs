@@ -1,0 +1,32 @@
+<%
+var _v  = locals.variant  || 'primary';
+var _sz = locals.size     || 'md';
+var _tp = locals.type     || 'button';
+
+var vc = {
+  primary:   'bg-primary text-primary-fg hover:bg-primary-hover',
+  secondary: 'bg-secondary text-secondary-fg hover:bg-secondary-hover',
+  ghost:     'bg-transparent text-text-primary hover:bg-surface-overlay',
+  danger:    'bg-error text-text-inverse hover:opacity-90',
+  outline:   'border border-border text-text-primary hover:bg-surface-overlay',
+}[_v] || 'bg-primary text-primary-fg hover:bg-primary-hover';
+
+var sc = {
+  xs: 'px-2 py-1 text-xs',
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-5 py-2.5 text-base',
+  xl: 'px-6 py-3 text-lg',
+}[_sz] || 'px-4 py-2 text-sm';
+%>
+<button
+  type="<%= _tp %>"
+  class="inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-50 disabled:cursor-not-allowed <%= vc %> <%= sc %><%= locals.fullWidth ? ' w-full' : '' %><%= locals.className ? ' ' + locals.className : '' %>"
+  <% if (locals.disabled)   { %>disabled<% } %>
+  <% if (locals.ariaLabel)  { %>aria-label="<%= locals.ariaLabel %>"<% } %>
+  <% if (locals.ariaPressed !== undefined) { %>aria-pressed="<%= locals.ariaPressed %>"<% } %>
+>
+  <% if (locals.iconLeft)  { %><span aria-hidden="true" class="shrink-0"><%- locals.iconLeft %></span><% } %>
+  <% if (locals.children)  { %><%= locals.children %><% } %>
+  <% if (locals.iconRight) { %><span aria-hidden="true" class="shrink-0"><%- locals.iconRight %></span><% } %>
+</button>
