@@ -9,6 +9,8 @@ const pad  = 'px-4 py-2 text-sm';
 const wrap = (inner: string) => `<div class="flex items-center justify-center p-4">${inner}</div>`;
 const btn  = (cls: string, label: string, extra = '') =>
   `<button type="button" ${extra} class="${base} ${cls} ${pad}">${label}</button>`;
+const spinner = (sz: string) =>
+  `<span aria-hidden="true" class="inline-block rounded-full border-current border-t-transparent animate-spin shrink-0 ${sz}"></span>`;
 
 export function buildButtonData(): ShowcaseItem[] {
   return [
@@ -17,7 +19,7 @@ export function buildButtonData(): ShowcaseItem[] {
       title: 'Button',
       category: 'Atom',
       abbr: 'Bt',
-      description: 'Temel interaktif element. 5 görsel stil (variant) ve 5 boyut (size) destekler. disabled durumu yerleşiktir.',
+      description: 'Temel interaktif element. 5 görsel stil (variant) ve 5 boyut (size) destekler. disabled, loading ve selected durumları yerleşiktir.',
       filePath: 'modules/ui/Button.ejs',
       sourceCode,
       variants: [
@@ -81,6 +83,40 @@ export function buildButtonData(): ShowcaseItem[] {
 </div>`,
           code: `<%- include('modules/ui/Button', { iconLeft: '<i class="fa-solid fa-download"></i>', children: 'Download' }) %>
 <%- include('modules/ui/Button', { variant: 'outline', iconRight: '<i class="fa-solid fa-arrow-right"></i>', children: 'Next' }) %>`,
+        },
+        {
+          title: 'Icon only',
+          previewHtml: `<div class="flex flex-wrap items-center justify-center gap-2 p-4">
+  <button type="button" aria-label="Delete item" class="${base} bg-primary text-primary-fg hover:bg-primary-hover ${pad}"><i class="fa-solid fa-trash"></i></button>
+  <button type="button" aria-label="Edit item"   class="${base} border border-border text-text-primary hover:bg-surface-overlay ${pad}"><i class="fa-solid fa-pen"></i></button>
+  <button type="button" aria-label="Share"        class="${base} bg-transparent text-text-primary hover:bg-surface-overlay ${pad}"><i class="fa-solid fa-share-nodes"></i></button>
+  <button type="button" aria-label="Delete"       class="${base} bg-error text-text-inverse hover:opacity-90 ${pad}"><i class="fa-solid fa-xmark"></i></button>
+</div>`,
+          code: `<%- include('modules/ui/Button', { ariaLabel: 'Delete item', children: '<i class="fa-solid fa-trash"></i>' }) %>
+<%- include('modules/ui/Button', { variant: 'outline', ariaLabel: 'Edit item', children: '<i class="fa-solid fa-pen"></i>' }) %>`,
+        },
+        {
+          title: 'Selected / active state',
+          previewHtml: `<div class="flex flex-wrap items-center justify-center gap-2 p-4">
+  <button type="button" aria-pressed="true"  class="${base} border border-border text-text-primary hover:bg-surface-overlay ${pad} ring-2 ring-inset ring-border-focus">Selected</button>
+  <button type="button" aria-pressed="false" class="${base} border border-border text-text-primary hover:bg-surface-overlay ${pad}">Default</button>
+  <button type="button" aria-pressed="false" class="${base} border border-border text-text-primary hover:bg-surface-overlay ${pad}">Default</button>
+</div>`,
+          code: `<%- include('modules/ui/Button', { variant: 'outline', selected: true,  children: 'Selected' }) %>
+<%- include('modules/ui/Button', { variant: 'outline', selected: false, children: 'Default' }) %>`,
+        },
+        {
+          title: 'Loading state',
+          previewHtml: `<div class="flex flex-wrap items-center justify-center gap-2 p-4">
+  <button type="button" disabled aria-busy="true" class="${base} bg-primary text-primary-fg ${pad}">
+    ${spinner('h-4 w-4 border-2')}Saving…
+  </button>
+  <button type="button" disabled aria-busy="true" class="${base} border border-border text-text-primary ${pad}">
+    ${spinner('h-4 w-4 border-2')}Loading details
+  </button>
+</div>`,
+          code: `<%- include('modules/ui/Button', { loading: true, children: 'Saving…' }) %>
+<%- include('modules/ui/Button', { variant: 'outline', loading: true, children: 'Loading details' }) %>`,
         },
         {
           title: 'Full width',

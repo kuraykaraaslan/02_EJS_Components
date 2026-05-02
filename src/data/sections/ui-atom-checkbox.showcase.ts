@@ -4,26 +4,31 @@ import * as path from 'path';
 
 const sourceCode = fs.readFileSync(path.join(process.cwd(), 'modules/ui/Checkbox.ejs'), 'utf-8');
 
-const inputBase = 'mt-0.5 h-4 w-4 rounded border-border text-primary focus-visible:ring-2 focus-visible:ring-border-focus';
-
+// Matches updated Checkbox.ejs
 function checkbox(opts: {
-  id: string;
-  label: string;
+  id?: string;
+  label?: string;
+  hint?: string;
   checked?: boolean;
   disabled?: boolean;
-  hint?: string;
-  error?: string;
-  extraInputClass?: string;
+  error?: boolean;
+  size?: 'sm' | 'md' | 'lg';
 }) {
-  const { id, label, checked = false, disabled = false, hint, error, extraInputClass = '' } = opts;
-  const labelColor = disabled ? 'text-text-disabled' : 'text-text-primary';
-  return `<div class="flex items-start gap-3">
-  <input id="${id}" type="checkbox" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} aria-invalid="${!!error}" class="${inputBase} ${extraInputClass} ${disabled ? 'disabled:opacity-50 disabled:cursor-not-allowed' : ''}" />
-  <div>
-    <label for="${id}" class="text-sm font-medium ${labelColor}">${label}</label>
-    ${hint && !error ? `<p class="text-xs text-text-secondary mt-0.5">${hint}</p>` : ''}
-    ${error ? `<p class="text-xs text-error mt-0.5" role="alert">${error}</p>` : ''}
+  const {
+    id = 'cb-' + Math.random().toString(36).slice(2, 7),
+    label, hint, checked = false, disabled = false, error = false,
+    size = 'md',
+  } = opts;
+  const boxClass = { sm: 'w-3.5 h-3.5 text-xs', md: 'w-4 h-4 text-sm', lg: 'w-5 h-5 text-base' }[size];
+  const disClass = disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer';
+  return `<div class="flex items-start">
+  <div class="flex items-center h-5">
+    <input id="${id}" type="checkbox" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''} class="rounded border-border text-primary focus:ring-primary/20 bg-surface ${boxClass} ${disClass}">
   </div>
+  ${label || hint ? `<div class="ml-3 text-sm">
+    ${label ? `<label for="${id}" class="font-medium text-text-primary ${disClass}">${label}</label>` : ''}
+    ${hint ? `<p class="text-text-secondary mt-0.5 ${error ? 'text-error' : ''}">${hint}</p>` : ''}
+  </div>` : ''}
 </div>`;
 }
 
@@ -34,38 +39,49 @@ export function buildCheckboxData(): ShowcaseItem[] {
       title: 'Checkbox',
       category: 'Atom',
       abbr: 'Cb',
-      description: 'Tekil boolean seçim kontrolü. Hint, error ve disabled durumları yerleşiktir.',
+      description: 'Tekil boolean seçim kontrolü. Label, hint ve disabled durumları; 3 boyut destekler.',
       filePath: 'modules/ui/Checkbox.ejs',
       sourceCode,
       variants: [
         {
           title: 'Default',
-          previewHtml: `<div class="flex justify-center p-4">${checkbox({ id: 'cb-default', label: 'Accept terms' })}</div>`,
-          code: `<%- include('modules/ui/Checkbox', { id: 'cb', label: 'Accept terms' }) %>`,
+          previewHtml: `<div class="flex justify-center p-4">${checkbox({ label: 'Accept terms and conditions' })}</div>`,
+          code: `<%- include('modules/ui/Checkbox', { id: 'cb', label: 'Accept terms and conditions' }) %>`,
         },
         {
           title: 'Checked',
-          previewHtml: `<div class="flex justify-center p-4">${checkbox({ id: 'cb-checked', label: 'Remember me', checked: true })}</div>`,
+          previewHtml: `<div class="flex justify-center p-4">${checkbox({ label: 'Remember me', checked: true })}</div>`,
           code: `<%- include('modules/ui/Checkbox', { id: 'cb', label: 'Remember me', checked: true }) %>`,
         },
         {
           title: 'With hint',
-          previewHtml: `<div class="flex justify-center p-4">${checkbox({ id: 'cb-hint', label: 'Subscribe to newsletter', hint: 'We send at most one email per week' })}</div>`,
+          previewHtml: `<div class="flex justify-center p-4">${checkbox({ label: 'Subscribe to newsletter', hint: 'We send at most one email per week' })}</div>`,
           code: `<%- include('modules/ui/Checkbox', { id: 'cb', label: 'Subscribe to newsletter', hint: 'We send at most one email per week' }) %>`,
         },
         {
           title: 'Error state',
-          previewHtml: `<div class="flex justify-center p-4">${checkbox({ id: 'cb-err', label: 'Accept terms', error: 'You must accept the terms', extraInputClass: 'border-error' })}</div>`,
-          code: `<%- include('modules/ui/Checkbox', { id: 'cb', label: 'Accept terms', error: 'You must accept the terms' }) %>`,
+          previewHtml: `<div class="flex justify-center p-4">${checkbox({ label: 'Accept terms', hint: 'You must accept the terms to continue', error: true })}</div>`,
+          code: `<%- include('modules/ui/Checkbox', { id: 'cb', label: 'Accept terms', hint: 'You must accept the terms', error: true }) %>`,
         },
         {
           title: 'Disabled',
-          previewHtml: `<div class="flex flex-col justify-center gap-3 p-4">
-  ${checkbox({ id: 'cb-dis1', label: 'Option A (disabled)', disabled: true })}
-  ${checkbox({ id: 'cb-dis2', label: 'Option B (disabled, checked)', checked: true, disabled: true })}
+          previewHtml: `<div class="flex flex-col items-start gap-3 p-4">
+  ${checkbox({ label: 'Option A (disabled)', disabled: true })}
+  ${checkbox({ label: 'Option B (disabled, checked)', checked: true, disabled: true })}
 </div>`,
           code: `<%- include('modules/ui/Checkbox', { id: 'cb1', label: 'Option A', disabled: true }) %>
 <%- include('modules/ui/Checkbox', { id: 'cb2', label: 'Option B', checked: true, disabled: true }) %>`,
+        },
+        {
+          title: 'Sizes',
+          previewHtml: `<div class="flex flex-col items-start gap-3 p-4">
+  ${checkbox({ size: 'sm', label: 'Small',  checked: true })}
+  ${checkbox({ size: 'md', label: 'Medium', checked: true })}
+  ${checkbox({ size: 'lg', label: 'Large',  checked: true })}
+</div>`,
+          code: `<%- include('modules/ui/Checkbox', { id: 'cb1', label: 'Small',  size: 'sm', checked: true }) %>
+<%- include('modules/ui/Checkbox', { id: 'cb2', label: 'Medium', size: 'md', checked: true }) %>
+<%- include('modules/ui/Checkbox', { id: 'cb3', label: 'Large',  size: 'lg', checked: true }) %>`,
         },
       ],
     },

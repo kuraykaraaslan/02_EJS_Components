@@ -4,46 +4,40 @@ import * as path from 'path';
 
 const sourceCode = fs.readFileSync(path.join(process.cwd(), 'modules/ui/Input.ejs'), 'utf-8');
 
-const inputBase = 'block w-full rounded-md border px-3 py-2 text-sm transition-colors text-text-primary placeholder:text-text-disabled focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-50 disabled:cursor-not-allowed';
-const defaultBorder = 'border-border bg-surface-base';
-const errorBorder   = 'border-error ring-1 ring-error bg-error-subtle';
-const successBorder = 'border-success ring-1 ring-success bg-success-subtle';
+// Matches updated Input.ejs
+const baseInput = 'block w-full rounded-md border bg-surface text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors';
+const defaultBorder = 'border-border focus:border-primary hover:border-text-tertiary';
+const errorBorder   = 'border-error focus:border-error focus:ring-error/20';
 
 function field(opts: {
-  id: string;
-  label: string;
+  id?: string;
+  label?: string;
   type?: string;
+  size?: 'sm' | 'md' | 'lg';
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-  readOnly?: boolean;
   hint?: string;
   error?: string;
-  success?: string;
-  prefixIcon?: string;
-  suffixIcon?: string;
+  iconLeft?: string;
   isPassword?: boolean;
-  extraClass?: string;
 }) {
-  const { id, label, type = 'text', placeholder = '', required, disabled, readOnly, hint, error, success, prefixIcon, suffixIcon, isPassword, extraClass = '' } = opts;
-  const borderClass = error ? errorBorder : success ? successBorder : defaultBorder;
-  const pl = prefixIcon ? ' pl-9' : '';
-  const pr = (suffixIcon || isPassword) ? ' pr-9' : '';
-  return `<div class="space-y-1 ${extraClass}">
-  <label for="${id}" class="block text-sm font-medium text-text-primary">
-    ${label}
-    ${required ? `<span class="text-error ml-1" aria-hidden="true">*</span>` : ''}
-    ${readOnly ? `<span class="ml-2 text-xs font-normal text-text-disabled">(read-only)</span>` : ''}
-  </label>
+  const {
+    id = 'i-' + Math.random().toString(36).slice(2, 6),
+    label, type = 'text', size = 'md', placeholder = '', required,
+    disabled, hint, error, iconLeft, isPassword,
+  } = opts;
+  const sc = { sm: 'px-2.5 py-1.5 text-sm', md: 'px-3 py-2 text-sm', lg: 'px-4 py-3 text-base' }[size];
+  const border = error ? errorBorder : defaultBorder;
+  const pl = iconLeft ? ' pl-9' : '';
+  return `<div class="w-full">
+  ${label ? `<label for="${id}" class="block text-sm font-medium text-text-primary mb-1.5">${label}${required ? ' <span class="text-error">*</span>' : ''}</label>` : ''}
   <div class="relative">
-    ${prefixIcon ? `<span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-disabled pointer-events-none"><i class="${prefixIcon}" aria-hidden="true"></i></span>` : ''}
-    <input id="${id}" type="${type}" placeholder="${placeholder}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readOnly ? 'readonly' : ''} aria-invalid="${!!error}" class="${inputBase} ${borderClass}${pl}${pr} ${disabled ? 'disabled:bg-surface-sunken' : ''} ${readOnly ? 'read-only:bg-surface-sunken read-only:cursor-default' : ''}" />
-    ${isPassword ? `<button type="button" aria-label="Show password" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-disabled hover:text-text-primary transition-colors focus-visible:outline-none text-sm"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>` : ''}
-    ${suffixIcon && !isPassword ? `<span class="absolute right-3 top-1/2 -translate-y-1/2 text-text-disabled pointer-events-none"><i class="${suffixIcon}" aria-hidden="true"></i></span>` : ''}
+    ${iconLeft ? `<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary"><i class="${iconLeft}" aria-hidden="true"></i></div>` : ''}
+    <input type="${isPassword ? 'password' : type}" id="${id}" placeholder="${placeholder}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} class="${baseInput} ${border} ${sc}${pl}">
   </div>
-  ${hint && !error && !success ? `<p class="text-xs text-text-secondary">${hint}</p>` : ''}
-  ${error ? `<p class="text-xs text-error" role="alert">${error}</p>` : ''}
-  ${success && !error ? `<p class="text-xs text-success-fg">${success}</p>` : ''}
+  ${hint && !error ? `<p class="mt-1.5 text-sm text-text-secondary">${hint}</p>` : ''}
+  ${error ? `<p class="mt-1.5 text-sm text-error">${error}</p>` : ''}
 </div>`;
 }
 
@@ -54,54 +48,56 @@ export function buildInputData(): ShowcaseItem[] {
       title: 'Input',
       category: 'Atom',
       abbr: 'In',
-      description: 'Metin giriş alanı. Label, hint, error, success, prefix/suffix icon ve password toggle desteği.',
+      description: 'Metin giriş alanı. Label, hint, error, prefix icon, password toggle ve 3 boyut destekler.',
       filePath: 'modules/ui/Input.ejs',
       sourceCode,
       variants: [
         {
           title: 'Default',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-def', label: 'Email address', placeholder: 'you@example.com' })}</div>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Email address', placeholder: 'you@example.com' })}</div>`,
           code: `<%- include('modules/ui/Input', { id: 'email', label: 'Email address', placeholder: 'you@example.com' }) %>`,
         },
         {
           title: 'Required',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-req', label: 'Full name', required: true, placeholder: 'Jane Doe' })}</div>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Full name', required: true, placeholder: 'Jane Doe' })}</div>`,
           code: `<%- include('modules/ui/Input', { id: 'name', label: 'Full name', required: true, placeholder: 'Jane Doe' }) %>`,
         },
         {
           title: 'With hint',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-hint', label: 'Username', placeholder: 'john_doe', hint: 'Letters, numbers and underscores only' })}</div>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Username', placeholder: 'john_doe', hint: 'Letters, numbers and underscores only' })}</div>`,
           code: `<%- include('modules/ui/Input', { id: 'user', label: 'Username', hint: 'Letters, numbers and underscores only' }) %>`,
         },
         {
           title: 'Error state',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-err', label: 'Email address', placeholder: 'you@example.com', error: 'Enter a valid email address' })}</div>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Email address', placeholder: 'you@example.com', error: 'Enter a valid email address' })}</div>`,
           code: `<%- include('modules/ui/Input', { id: 'email', label: 'Email address', error: 'Enter a valid email address' }) %>`,
         },
         {
-          title: 'Success state',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-ok', label: 'Username', placeholder: 'john_doe', success: 'Username is available' })}</div>`,
-          code: `<%- include('modules/ui/Input', { id: 'user', label: 'Username', success: 'Username is available' }) %>`,
-        },
-        {
           title: 'Disabled',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-dis', label: 'Account ID', placeholder: 'acc-00123', disabled: true })}</div>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Account ID', placeholder: 'acc-00123', disabled: true })}</div>`,
           code: `<%- include('modules/ui/Input', { id: 'acc', label: 'Account ID', disabled: true }) %>`,
         },
         {
-          title: 'Read-only',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-ro', label: 'API key', placeholder: 'sk-••••••••••••••••', readOnly: true })}</div>`,
-          code: `<%- include('modules/ui/Input', { id: 'key', label: 'API key', readOnly: true, value: 'sk-••••••••••••••••' }) %>`,
-        },
-        {
           title: 'Password',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-pw', label: 'Password', type: 'password', placeholder: '••••••••', isPassword: true })}</div>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Password', isPassword: true, placeholder: '••••••••' })}</div>`,
           code: `<%- include('modules/ui/Input', { id: 'pw', label: 'Password', type: 'password', placeholder: '••••••••' }) %>`,
         },
         {
           title: 'Prefix icon',
-          previewHtml: `<div class="flex justify-center p-4 max-w-sm mx-auto w-full">${field({ id: 'i-ico', label: 'Search', placeholder: 'Search…', prefixIcon: 'fa-solid fa-magnifying-glass' })}</div>`,
-          code: `<%- include('modules/ui/Input', { id: 'search', label: 'Search', prefixIcon: 'fa-solid fa-magnifying-glass', placeholder: 'Search…' }) %>`,
+          previewHtml: `<div class="p-4 max-w-sm mx-auto w-full">${field({ label: 'Search', placeholder: 'Search…', iconLeft: 'fa-solid fa-magnifying-glass' })}</div>`,
+          code: `<%- include('modules/ui/Input', { id: 'search', label: 'Search', iconLeft: '<i class=\\"fa-solid fa-magnifying-glass\\"></i>', placeholder: 'Search…' }) %>`,
+        },
+        {
+          title: 'Sizes',
+          layout: 'stack' as const,
+          previewHtml: `<div class="flex flex-col gap-3 p-4 max-w-sm mx-auto w-full">
+  ${field({ label: 'Small',  size: 'sm', placeholder: 'sm size…' })}
+  ${field({ label: 'Medium', size: 'md', placeholder: 'md size…' })}
+  ${field({ label: 'Large',  size: 'lg', placeholder: 'lg size…' })}
+</div>`,
+          code: `<%- include('modules/ui/Input', { id: 'sm', label: 'Small',  size: 'sm' }) %>
+<%- include('modules/ui/Input', { id: 'md', label: 'Medium', size: 'md' }) %>
+<%- include('modules/ui/Input', { id: 'lg', label: 'Large',  size: 'lg' }) %>`,
         },
       ],
     },

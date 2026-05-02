@@ -1,42 +1,32 @@
 <%
-var _id       = locals.id       || 'textarea';
-var _label    = locals.label    || '';
-var _value    = locals.value    !== undefined ? locals.value : '';
-var _placeholder = locals.placeholder || '';
-var _rows     = locals.rows     || 4;
-var _hint     = locals.hint     || null;
-var _error    = locals.error    || null;
-var _required = locals.required || false;
-var _disabled = locals.disabled || false;
-
-var hintId  = _hint  ? _id + '-hint'  : null;
-var errorId = _error ? _id + '-error' : null;
-var describedBy = [hintId, errorId].filter(Boolean).join(' ') || null;
-
-var borderClass = _error ? 'border-error ring-1 ring-error bg-error-subtle' : 'border-border bg-surface-base';
+  var _dis = locals.disabled ? 'disabled' : '';
+  var _id = locals.id || 'textarea-' + Math.random().toString(36).substr(2, 9);
+  var _rows = locals.rows || 4;
+  
+  var baseInputClass = "block w-full rounded-md border bg-surface text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors px-3 py-2 text-sm";
+  
+  var errorClass = locals.error 
+    ? "border-error focus:border-error focus:ring-error/20" 
+    : "border-border focus:border-primary hover:border-text-tertiary";
 %>
-<div class="space-y-1<%= locals.className ? ' ' + locals.className : '' %>">
-  <label for="<%= _id %>" class="block text-sm font-medium text-text-primary">
-    <%= _label %>
-    <% if (_required) { %>
-      <span class="text-error ml-1" aria-hidden="true">*</span>
-      <span class="sr-only">(required)</span>
-    <% } %>
-  </label>
-  <textarea
-    id="<%= _id %>"
-    rows="<%= _rows %>"
-    placeholder="<%= _placeholder %>"
-    <% if (_required) { %>required<% } %>
-    <% if (_disabled) { %>disabled<% } %>
-    <% if (describedBy) { %>aria-describedby="<%= describedBy %>"<% } %>
-    aria-invalid="<%= !!_error %>"
-    class="block w-full rounded-md border px-3 py-2 text-sm transition-colors resize-y text-text-primary placeholder:text-text-disabled focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:border-border-focus disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-sunken <%= borderClass %>"
-  ><%= _value %></textarea>
-  <% if (_hint && !_error) { %>
-    <p id="<%= hintId %>" class="text-xs text-text-secondary"><%= _hint %></p>
+<div class="w-full <%= locals.className || '' %>">
+  <% if (locals.label) { %>
+    <label for="<%= _id %>" class="block text-sm font-medium text-text-primary mb-1.5">
+      <%= locals.label %> <% if (locals.required) { %><span class="text-error">*</span><% } %>
+    </label>
   <% } %>
-  <% if (_error) { %>
-    <p id="<%= errorId %>" class="text-xs text-error" role="alert"><%= _error %></p>
+  <textarea 
+    id="<%= _id %>" 
+    rows="<%= _rows %>"
+    class="<%= baseInputClass %> <%= errorClass %> <%= locals.resize === 'none' ? 'resize-none' : '' %>"
+    <% if (locals.placeholder) { %>placeholder="<%= locals.placeholder %>"<% } %>
+    <% if (locals.name) { %>name="<%= locals.name %>"<% } %>
+    <%= _dis %>
+    <% if (locals.required) { %>required<% } %>
+  ><% if (locals.value) { %><%= locals.value %><% } %></textarea>
+  <% if (locals.hint || locals.error) { %>
+    <p class="mt-1.5 text-sm <%= locals.error ? 'text-error' : 'text-text-secondary' %>">
+      <%= locals.error || locals.hint %>
+    </p>
   <% } %>
 </div>

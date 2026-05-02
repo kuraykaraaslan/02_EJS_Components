@@ -1,82 +1,49 @@
 <%
-var _id       = locals.id       || 'input';
-var _label    = locals.label    || '';
-var _type     = locals.type     || 'text';
-var _value    = locals.value    !== undefined ? locals.value : '';
-var _placeholder = locals.placeholder || '';
-var _hint     = locals.hint     || null;
-var _error    = locals.error    || null;
-var _success  = locals.success  || null;
-var _required = locals.required || false;
-var _disabled = locals.disabled || false;
-var _readOnly = locals.readOnly || false;
-var _prefixIcon = locals.prefixIcon || null;
-var _suffixIcon = locals.suffixIcon || null;
+  var _sz = locals.size || 'md';
+  var _dis = locals.disabled ? 'disabled' : '';
+  var _id = locals.id || 'input-' + Math.random().toString(36).substr(2, 9);
+  var _type = locals.type || 'text';
+  
+  var sizeClass = {
+    sm: 'px-2.5 py-1.5 text-sm',
+    md: 'px-3 py-2 text-sm',
+    lg: 'px-4 py-3 text-base'
+  }[_sz] || 'px-3 py-2 text-sm';
 
-var hintId    = (_hint && !_error && !_success) ? _id + '-hint'    : null;
-var errorId   = _error   ? _id + '-error'   : null;
-var successId = (_success && !_error) ? _id + '-success' : null;
-var describedBy = [hintId, errorId, successId].filter(Boolean).join(' ') || null;
-
-var borderClass = _error   ? 'border-error ring-1 ring-error bg-error-subtle'
-                : _success ? 'border-success ring-1 ring-success bg-success-subtle'
-                :            'border-border bg-surface-base';
-
-var plClass = _prefixIcon ? ' pl-9' : '';
-var prClass = (_suffixIcon || _type === 'password') ? ' pr-9' : '';
+  var baseInputClass = "block w-full rounded-md border bg-surface text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+  
+  var errorClass = locals.error 
+    ? "border-error focus:border-error focus:ring-error/20" 
+    : "border-border focus:border-primary hover:border-text-tertiary";
+    
+  var iconPaddingClass = locals.iconLeft ? 'pl-9' : '';
 %>
-<div class="space-y-1<%= locals.className ? ' ' + locals.className : '' %>">
-  <label for="<%= _id %>" class="block text-sm font-medium text-text-primary">
-    <%= _label %>
-    <% if (_required) { %>
-      <span class="text-error ml-1" aria-hidden="true">*</span>
-      <span class="sr-only">(required)</span>
-    <% } %>
-    <% if (_readOnly) { %>
-      <span class="ml-2 text-xs font-normal text-text-disabled">(read-only)</span>
-    <% } %>
-  </label>
-
+<div class="w-full <%= locals.className || '' %>">
+  <% if (locals.label) { %>
+    <label for="<%= _id %>" class="block text-sm font-medium text-text-primary mb-1.5">
+      <%= locals.label %> <% if (locals.required) { %><span class="text-error">*</span><% } %>
+    </label>
+  <% } %>
   <div class="relative">
-    <% if (_prefixIcon) { %>
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-disabled pointer-events-none">
-        <i class="<%= _prefixIcon %>" aria-hidden="true"></i>
-      </span>
+    <% if (locals.iconLeft) { %>
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
+        <%- locals.iconLeft %>
+      </div>
     <% } %>
-
-    <input
-      id="<%= _id %>"
-      type="<%= _type %>"
-      value="<%= _value %>"
-      placeholder="<%= _placeholder %>"
-      <% if (_required) { %>required<% } %>
-      <% if (_disabled) { %>disabled<% } %>
-      <% if (_readOnly) { %>readonly<% } %>
-      <% if (describedBy) { %>aria-describedby="<%= describedBy %>"<% } %>
-      aria-invalid="<%= !!_error %>"
-      class="block w-full rounded-md border px-3 py-2 text-sm transition-colors text-text-primary placeholder:text-text-disabled focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-sunken read-only:bg-surface-sunken read-only:cursor-default <%= borderClass %><%= plClass %><%= prClass %>"
-    />
-
-    <% if (_suffixIcon && _type !== 'password') { %>
-      <span class="absolute right-3 top-1/2 -translate-y-1/2 text-text-disabled pointer-events-none">
-        <i class="<%= _suffixIcon %>" aria-hidden="true"></i>
-      </span>
-    <% } %>
-
-    <% if (_type === 'password') { %>
-      <button type="button" aria-label="Show password" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-disabled hover:text-text-primary transition-colors focus-visible:outline-none text-sm">
-        <i class="fa-solid fa-eye w-3.5 h-3.5" aria-hidden="true"></i>
-      </button>
-    <% } %>
+    <input 
+      type="<%= _type %>" 
+      id="<%= _id %>" 
+      class="<%= baseInputClass %> <%= errorClass %> <%= sizeClass %> <%= iconPaddingClass %>"
+      <% if (locals.placeholder) { %>placeholder="<%= locals.placeholder %>"<% } %>
+      <% if (locals.value) { %>value="<%= locals.value %>"<% } %>
+      <% if (locals.name) { %>name="<%= locals.name %>"<% } %>
+      <%= _dis %>
+      <% if (locals.required) { %>required<% } %>
+    >
   </div>
-
-  <% if (hintId) { %>
-    <p id="<%= hintId %>" class="text-xs text-text-secondary"><%= _hint %></p>
-  <% } %>
-  <% if (_error) { %>
-    <p id="<%= errorId %>" class="text-xs text-error" role="alert"><%= _error %></p>
-  <% } %>
-  <% if (successId) { %>
-    <p id="<%= successId %>" class="text-xs text-success-fg"><%= _success %></p>
+  <% if (locals.hint || locals.error) { %>
+    <p class="mt-1.5 text-sm <%= locals.error ? 'text-error' : 'text-text-secondary' %>">
+      <%= locals.error || locals.hint %>
+    </p>
   <% } %>
 </div>
