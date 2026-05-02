@@ -4,9 +4,13 @@ import { SHOWCASE_DATA_MAP } from '../data/showcase.data';
 
 const router = Router();
 
-router.get('/', (req, res) => {
-  const selectedId = typeof req.query.id === 'string' ? req.query.id : null;
-  const selected = selectedId ? (SHOWCASE_DATA_MAP[selectedId] ?? null) : null;
+router.get('/', (_req, res) => {
+  res.redirect('/button');
+});
+
+router.get('/:slug', (req, res) => {
+  const selectedId = req.params.slug;
+  const selected = SHOWCASE_DATA_MAP[selectedId] ?? null;
 
   const navGroups = NAV_GROUPS.map((group) => ({
     ...group,

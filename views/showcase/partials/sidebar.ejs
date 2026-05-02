@@ -68,7 +68,7 @@
           <% group.items.forEach(function(item) { %>
             <%
               var isActive = item.active || item.id === selectedId;
-              var href = item.href ? item.href : '/?id=' + item.id;
+              var href = item.href ? item.href : '/' + item.id;
               var isExternal = !!(item.href && !item.href.startsWith('/'));
             %>
             <li>
@@ -166,7 +166,7 @@
             <% group.items.forEach(function(item) { %>
               <%
                 var isActive = item.active || item.id === selectedId;
-                var href = item.href ? item.href : '/?id=' + item.id;
+                var href = item.href ? item.href : '/' + item.id;
               %>
               <li>
                 <a
