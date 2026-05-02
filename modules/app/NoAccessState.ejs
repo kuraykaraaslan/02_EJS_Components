@@ -1,0 +1,17 @@
+<%
+  var _title       = locals.title       || 'Access denied';
+  var _description = locals.description || "You don't have permission to view this content.";
+%>
+<div class="flex flex-col items-center py-12 px-4 text-center<%= locals.className ? ' '+locals.className : '' %>">
+  <div class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-sunken mb-4">
+    <i class="fa-solid fa-lock text-text-secondary text-lg" aria-hidden="true"></i>
+  </div>
+  <h2 class="text-base font-semibold text-text-primary"><%= _title %></h2>
+  <p class="text-sm text-text-secondary mt-2 max-w-xs"><%= _description %></p>
+  <% if (locals.requestHref) { %>
+  <a href="<%= locals.requestHref %>"
+    class="mt-5 inline-flex items-center gap-2 rounded-md bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus">
+    Request access
+  </a>
+  <% } %>
+</div>

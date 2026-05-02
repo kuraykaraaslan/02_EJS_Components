@@ -6,6 +6,7 @@ const userAvatarSource      = fs.readFileSync(path.join(process.cwd(), 'modules/
 const userMenuSource        = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/user/UserMenu.ejs'), 'utf-8');
 const userRoleBadgeSource   = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/user/UserRoleBadge.ejs'), 'utf-8');
 const userStatusBadgeSource = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/user/UserStatusBadge.ejs'), 'utf-8');
+const userProfileCardSource = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/user/UserProfileCard.ejs'), 'utf-8');
 const userProfileFormSource = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/user/UserProfileForm.ejs'), 'utf-8');
 const userPrefsFormSource   = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/user/UserPreferencesForm.ejs'), 'utf-8');
 
@@ -244,7 +245,7 @@ export function buildDomainCommonUserData(): ShowcaseItem[] {
   <div class="w-full"><label class="block text-sm font-medium text-text-primary mb-1.5">Bio</label><textarea rows="3" placeholder="Tell us about yourself…" class="block w-full rounded-md border border-border bg-surface text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 px-3 py-2 text-sm"></textarea></div>
   ${baseInput({ id: 'pf3', label: 'Profile Picture URL', type: 'url', placeholder: 'https://example.com/avatar.jpg', icon: '<i class="fa-solid fa-link text-xs" aria-hidden="true"></i>' })}
   <div class="flex justify-end gap-2 pt-2"><button type="submit" class="inline-flex items-center justify-center gap-2 rounded-md font-medium bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">Save Profile</button></div>
-</form></div>`,
+</form></div></div>`,
           code: `<%- include('modules/domain/common/user/UserProfileForm', {
   action: '/account/profile',
   initial: {
@@ -264,13 +265,92 @@ export function buildDomainCommonUserData(): ShowcaseItem[] {
   <div class="w-full"><label class="block text-sm font-medium text-text-primary mb-1.5">Bio</label><textarea rows="3" class="block w-full rounded-md border border-border bg-surface text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 px-3 py-2 text-sm">Frontend developer and coffee enthusiast.</textarea></div>
   ${baseInput({ id: 'pf6', label: 'Profile Picture URL', type: 'url', value: 'https://example.com/alice.jpg', icon: '<i class="fa-solid fa-link text-xs" aria-hidden="true"></i>' })}
   <div class="flex justify-end gap-2 pt-2"><a href="#" class="inline-flex items-center justify-center gap-2 rounded-md font-medium border border-border text-text-primary hover:bg-surface-overlay px-4 py-2 text-sm">Cancel</a><button type="submit" class="inline-flex items-center justify-center gap-2 rounded-md font-medium bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">Save Profile</button></div>
-</form></div>`,
+</form></div></div>`,
           code: `<%- include('modules/domain/common/user/UserProfileForm', {
   action: '/account/profile',
   cancelHref: '/account',
   initial: { name: 'Alice Johnson', username: 'alicejohnson', ... }
 }) %>`,
           layout: 'stack',
+        },
+      ],
+    },
+
+    // ── UserProfileCard ───────────────────────────────────────────────────────
+    {
+      id: 'user-profile-card',
+      title: 'UserProfileCard',
+      category: 'Domain',
+      abbr: 'Pc',
+      description: 'Profil kartı: kapak banner, avatar, görünen ad, kullanıcı adı, biyografi, rol ve durum rozetleri ve isteğe bağlı actions slotu.',
+      filePath: 'modules/domain/common/user/UserProfileCard.ejs',
+      sourceCode: userProfileCardSource,
+      variants: [
+        {
+          title: 'Full profile',
+          previewHtml: `<div class="w-full max-w-sm p-4">
+  <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+    <div class="h-20 bg-gradient-to-r from-primary-subtle to-secondary/20"></div>
+    <div class="px-5 pb-5">
+      <div class="flex items-end justify-between -mt-8 mb-3">
+        <div class="ring-4 ring-surface-raised rounded-full">
+          ${avatarEl({ name: 'Jane Doe', size: 'xl' })}
+        </div>
+        <div class="flex items-center gap-2 pb-1">
+          <button class="text-xs text-primary border border-border rounded-md px-3 py-1 hover:bg-surface-overlay">Edit</button>
+        </div>
+      </div>
+      <div class="space-y-1 mb-3">
+        <h3 class="text-lg font-bold text-text-primary leading-tight">Jane Doe</h3>
+        <p class="text-sm text-text-secondary">@janedoe</p>
+        <p class="text-sm text-text-secondary leading-relaxed pt-1">Full-stack engineer. Loves design systems and coffee.</p>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        ${badgeEl({ variant: 'error',   children: 'Admin' })}
+        ${badgeEl({ variant: 'success', children: 'Active' })}
+        <span class="text-xs text-text-secondary truncate">admin@acme.com</span>
+      </div>
+    </div>
+  </div>
+</div>`,
+          code: `<%- include('modules/domain/common/user/UserProfileCard', {
+  name:      user.name,
+  email:     user.email,
+  role:      user.role,
+  status:    user.status,
+  username:  user.username,
+  biography: user.biography,
+  src:       user.profilePicture
+}) %>`,
+          layout: 'stack',
+        },
+        {
+          title: 'No profile data',
+          previewHtml: `<div class="w-full max-w-sm p-4">
+  <div class="bg-surface-raised border border-border rounded-xl overflow-hidden">
+    <div class="h-20 bg-gradient-to-r from-primary-subtle to-secondary/20"></div>
+    <div class="px-5 pb-5">
+      <div class="flex items-end -mt-8 mb-3">
+        <div class="ring-4 ring-surface-raised rounded-full">
+          ${avatarEl({ name: 'user@acme.com', size: 'xl' })}
+        </div>
+      </div>
+      <div class="space-y-1 mb-3">
+        <h3 class="text-lg font-bold text-text-primary leading-tight">user@acme.com</h3>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        ${badgeEl({ variant: 'neutral', children: 'User' })}
+        ${badgeEl({ variant: 'neutral', children: 'Inactive' })}
+        <span class="text-xs text-text-secondary truncate">user@acme.com</span>
+      </div>
+    </div>
+  </div>
+</div>`,
+          code: `<%- include('modules/domain/common/user/UserProfileCard', {
+  email:  user.email,
+  role:   user.role,
+  status: user.status
+}) %>`,
         },
       ],
     },
@@ -287,7 +367,7 @@ export function buildDomainCommonUserData(): ShowcaseItem[] {
       variants: [
         {
           title: 'Default',
-          previewHtml: `<div class="p-4 w-full max-w-sm"><form class="space-y-6">
+          previewHtml: `<div class="p-4 w-full max-w-sm"><div class="bg-surface rounded-xl border border-border p-5"><form class="space-y-6">
   <div class="space-y-3">
     <h3 class="text-sm font-semibold text-text-primary">Appearance</h3>
     <div><label class="block text-sm font-medium text-text-primary mb-1.5">Theme</label><select class="block w-full rounded-md border border-border bg-surface text-text-primary appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 px-3 py-2 text-sm"><option selected>System default</option><option>Light</option><option>Dark</option></select></div>
@@ -300,7 +380,7 @@ export function buildDomainCommonUserData(): ShowcaseItem[] {
     ${toggleEl({ label: 'Newsletter', checked: false })}
   </div>
   <div class="flex justify-end pt-2"><button type="submit" class="inline-flex items-center justify-center gap-2 rounded-md font-medium bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">Save Preferences</button></div>
-</form></div>`,
+</form></div></div>`,
           code: `<%- include('modules/domain/common/user/UserPreferencesForm', {
   action: '/account/preferences',
   initial: {

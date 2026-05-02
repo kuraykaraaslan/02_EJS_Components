@@ -1,0 +1,6 @@
+<div class="flex items-center gap-3 flex-1<%= locals.className ? ' '+locals.className : '' %>">
+  <% if (locals.logoContent) { %>
+  <div class="shrink-0"><%- locals.logoContent %></div>
+  <% } %>
+  <%- locals.children || '' %>
+</div>

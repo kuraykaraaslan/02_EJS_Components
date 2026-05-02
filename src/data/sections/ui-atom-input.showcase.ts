@@ -4,10 +4,9 @@ import * as path from 'path';
 
 const sourceCode = fs.readFileSync(path.join(process.cwd(), 'modules/ui/Input.ejs'), 'utf-8');
 
-// Matches updated Input.ejs
-const baseInput = 'block w-full rounded-md border bg-surface text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors';
-const defaultBorder = 'border-border focus:border-primary hover:border-text-tertiary';
-const errorBorder   = 'border-error focus:border-error focus:ring-error/20';
+const baseInput = 'block w-full rounded-md border bg-surface-base text-text-primary placeholder:text-text-disabled focus:outline-none focus:ring-2 focus:ring-border-focus disabled:opacity-50 disabled:cursor-not-allowed transition-colors';
+const defaultBorder = 'border-border hover:border-border-strong';
+const errorBorder   = 'border-error ring-1 ring-error bg-error-subtle';
 
 function field(opts: {
   id?: string;
@@ -33,7 +32,7 @@ function field(opts: {
   return `<div class="w-full">
   ${label ? `<label for="${id}" class="block text-sm font-medium text-text-primary mb-1.5">${label}${required ? ' <span class="text-error">*</span>' : ''}</label>` : ''}
   <div class="relative">
-    ${iconLeft ? `<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary"><i class="${iconLeft}" aria-hidden="true"></i></div>` : ''}
+    ${iconLeft ? `<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-disabled"><i class="${iconLeft}" aria-hidden="true"></i></div>` : ''}
     <input type="${isPassword ? 'password' : type}" id="${id}" placeholder="${placeholder}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} class="${baseInput} ${border} ${sc}${pl}">
   </div>
   ${hint && !error ? `<p class="mt-1.5 text-sm text-text-secondary">${hint}</p>` : ''}

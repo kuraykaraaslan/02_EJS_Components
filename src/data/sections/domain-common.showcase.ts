@@ -3,8 +3,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { buildDomainCommonAuthData } from './domain-common-auth.showcase';
 import { buildDomainCommonUserData } from './domain-common-user.showcase';
+import { buildDomainCommonMoneyData } from './domain-common-money.showcase';
+import { buildDomainCommonPaymentData } from './domain-common-payment.showcase';
+import { buildDomainCommonAddressData } from './domain-common-address.showcase';
+import { buildDomainCommonStatusData } from './domain-common-status.showcase';
+import { buildDomainCommonDiscountData } from './domain-common-discount.showcase';
+import { buildDomainCommonSeoData } from './domain-common-seo.showcase';
+import { buildDomainCommonLocationData } from './domain-common-location.showcase';
 
 const languageSwitcherSource = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/i18n/LanguageSwitcher.ejs'), 'utf-8');
+const directionProviderSource= fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/i18n/DirectionProvider.ejs'), 'utf-8');
 const notFoundPageSource     = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/NotFoundPage.ejs'), 'utf-8');
 
 // ─── LanguageSwitcher preview helper ─────────────────────────────────────────
@@ -53,79 +61,184 @@ const notFoundPreview = `<div class="flex flex-col items-center justify-center p
   </div>
 </div>`;
 
-// ─── Builder ──────────────────────────────────────────────────────────────────
+// ─── i18n items ───────────────────────────────────────────────────────────────
 
-export function buildDomainCommonData(): ShowcaseItem[] {
-  return [
-    ...buildDomainCommonAuthData(),
-    ...buildDomainCommonUserData(),
-
-    // ── LanguageSwitcher ──────────────────────────────────────────────────────
+const languageSwitcherItem: ShowcaseItem = {
+  id: 'language-switcher',
+  title: 'LanguageSwitcher',
+  category: 'Domain',
+  abbr: 'Ls',
+  description: 'Native select ile dil seçici. en/tr/de/fr/ar varsayılan diller; autoSubmit ile form aracılığıyla otomatik gönderi.',
+  filePath: 'modules/domain/common/i18n/LanguageSwitcher.ejs',
+  sourceCode: languageSwitcherSource,
+  variants: [
     {
-      id: 'language-switcher',
-      title: 'LanguageSwitcher',
-      category: 'Domain',
-      abbr: 'Ls',
-      description: 'Native select ile dil seçici. en/tr/de/fr/ar varsayılan diller; autoSubmit ile form aracılığıyla otomatik gönderi.',
-      filePath: 'modules/domain/common/i18n/LanguageSwitcher.ejs',
-      sourceCode: languageSwitcherSource,
-      variants: [
-        {
-          title: 'Default (English)',
-          previewHtml: `<div class="p-4">${langSwitcherEl('en')}</div>`,
-          code: `<%- include('modules/domain/common/i18n/LanguageSwitcher', {
+      title: 'Default (English)',
+      previewHtml: `<div class="p-4">${langSwitcherEl('en')}</div>`,
+      code: `<%- include('modules/domain/common/i18n/LanguageSwitcher', {
   value: currentLang,
   name: 'language'
 }) %>`,
-        },
-        {
-          title: 'Turkish selected',
-          previewHtml: `<div class="p-4">${langSwitcherEl('tr')}</div>`,
-          code: `<%- include('modules/domain/common/i18n/LanguageSwitcher', {
+    },
+    {
+      title: 'Turkish selected',
+      previewHtml: `<div class="p-4">${langSwitcherEl('tr')}</div>`,
+      code: `<%- include('modules/domain/common/i18n/LanguageSwitcher', {
   value: 'tr'
 }) %>`,
-        },
-        {
-          title: 'Auto-submit on change',
-          previewHtml: `<div class="p-4"><form action="/set-language" method="post">${langSwitcherEl('en')}</form></div>`,
-          code: `<form action="/set-language" method="post">
+    },
+    {
+      title: 'Auto-submit on change',
+      previewHtml: `<div class="p-4"><form action="/set-language" method="post">${langSwitcherEl('en')}</form></div>`,
+      code: `<form action="/set-language" method="post">
   <%- include('modules/domain/common/i18n/LanguageSwitcher', {
     value: currentLang,
     autoSubmit: true
   }) %>
 </form>`,
-        },
-      ],
     },
+  ],
+};
 
-    // ── NotFoundPage ──────────────────────────────────────────────────────────
+const directionProviderItem: ShowcaseItem = {
+  id: 'direction-provider',
+  title: 'DirectionProvider',
+  category: 'Domain',
+  abbr: 'Dp',
+  description: 'Dil koduna göre dir="rtl"/"ltr" atayan wrapper div. RTL dilleri: ar, he, fa, ur, yi, ku, ps, sd.',
+  filePath: 'modules/domain/common/i18n/DirectionProvider.ejs',
+  sourceCode: directionProviderSource,
+  variants: [
     {
-      id: 'not-found-page',
-      title: 'NotFoundPage',
-      category: 'Domain',
-      abbr: 'Nf',
-      description: 'Tam sayfa 404 bileşeni. Gradient 404 yazısı, ikon, başlık, açıklama ve "Go Home" / "Go Back" butonları.',
-      filePath: 'modules/domain/common/NotFoundPage.ejs',
-      sourceCode: notFoundPageSource,
-      variants: [
-        {
-          title: 'Default',
-          previewHtml: notFoundPreview,
-          code: `<%- include('modules/domain/common/NotFoundPage') %>`,
-          layout: 'stack',
-        },
-        {
-          title: 'Custom title & description',
-          previewHtml: notFoundPreview,
-          code: `<%- include('modules/domain/common/NotFoundPage', {
+      title: 'RTL (Arabic)',
+      previewHtml: `<div class="w-full max-w-sm p-4">
+  <div dir="rtl" lang="ar">
+    <div class="space-y-2 p-4 bg-surface-raised border border-border rounded-lg">
+      <p class="text-sm font-semibold text-text-primary">dir="rtl"</p>
+      <p class="text-sm text-text-secondary">مرحبا بالعالم — Hello World</p>
+      <p class="text-xs text-text-disabled">Text flows right to left</p>
+    </div>
+  </div>
+</div>`,
+      code: `<%- include('modules/domain/common/i18n/DirectionProvider', {
+  lang: 'ar'
+}) %>`,
+      layout: 'stack',
+    },
+    {
+      title: 'LTR (English)',
+      previewHtml: `<div class="w-full max-w-sm p-4">
+  <div dir="ltr" lang="en">
+    <div class="space-y-2 p-4 bg-surface-raised border border-border rounded-lg">
+      <p class="text-sm font-semibold text-text-primary">dir="ltr"</p>
+      <p class="text-sm text-text-secondary">Hello World — مرحبا بالعالم</p>
+      <p class="text-xs text-text-disabled">Text flows left to right</p>
+    </div>
+  </div>
+</div>`,
+      code: `<%- include('modules/domain/common/i18n/DirectionProvider', {
+  lang: 'en'
+}) %>`,
+      layout: 'stack',
+    },
+  ],
+};
+
+const notFoundPageItem: ShowcaseItem = {
+  id: 'not-found-page',
+  title: 'NotFoundPage',
+  category: 'Domain',
+  abbr: 'Nf',
+  description: 'Tam sayfa 404 bileşeni. Gradient 404 yazısı, ikon, başlık, açıklama ve "Go Home" / "Go Back" butonları.',
+  filePath: 'modules/domain/common/NotFoundPage.ejs',
+  sourceCode: notFoundPageSource,
+  variants: [
+    {
+      title: 'Default',
+      previewHtml: notFoundPreview,
+      code: `<%- include('modules/domain/common/NotFoundPage') %>`,
+      layout: 'stack',
+    },
+    {
+      title: 'Custom title & description',
+      previewHtml: notFoundPreview,
+      code: `<%- include('modules/domain/common/NotFoundPage', {
   title: 'Nothing here yet',
   description: 'This section is under construction. Check back soon.',
   homeLabel: 'Return home',
   backLabel: 'Previous page'
 }) %>`,
-          layout: 'stack',
-        },
-      ],
+      layout: 'stack',
     },
+  ],
+};
+
+// ─── Builder ──────────────────────────────────────────────────────────────────
+
+export function buildDomainCommonData(): ShowcaseItem[] {
+  // Collect all items indexed by id
+  const allItems: Record<string, ShowcaseItem> = {};
+
+  for (const item of [
+    ...buildDomainCommonAuthData(),
+    ...buildDomainCommonUserData(),
+    ...buildDomainCommonMoneyData(),
+    ...buildDomainCommonPaymentData(),
+    ...buildDomainCommonAddressData(),
+    ...buildDomainCommonStatusData(),
+    ...buildDomainCommonDiscountData(),
+    ...buildDomainCommonSeoData(),
+    ...buildDomainCommonLocationData(),
+    languageSwitcherItem,
+    directionProviderItem,
+    notFoundPageItem,
+  ]) {
+    allItems[item.id] = item;
+  }
+
+  // Return in exact NextJS showcase order
+  const ORDER = [
+    'login-form',
+    'register-form',
+    'oauth-buttons',
+    'user-avatar',
+    'user-role-badge',
+    'user-status-badge',
+    'user-menu',
+    'price-display',
+    'payment-status-badge',
+    'address-form',
+    'address-card',
+    'order-totals-card',
+    'publish-status-badge',
+    'visibility-badge',
+    'language-switcher',
+    'change-password-form',
+    'user-profile-card',
+    'user-profile-form',
+    'user-preferences-form',
+    'coupon-input',
+    'discount-badge',
+    'payment-method-selector',
+    'payment-summary-card',
+    'forgot-password-form',
+    'session-expired-banner',
+    'seo-form',
+    'seo-preview',
+    'address-selector',
+    'location-picker',
+    'geo-point-display',
+    'processing-status-indicator',
+    'currency-selector',
+    'direction-provider',
+    'credit-card-visual',
+    'credit-card-form',
+    'saved-card-selector',
+    'not-found-page',
   ];
+
+  return ORDER.map((id) => {
+    if (!allItems[id]) throw new Error(`ShowcaseItem not found: ${id}`);
+    return allItems[id];
+  });
 }

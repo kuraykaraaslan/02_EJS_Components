@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:css\"",
-    "dev:server": "nodemon --watch src --watch views --ext ts,ejs --exec tsx src/server.ts",
+    "dev:server": "nodemon --watch src --watch views --watch modules --ext ts,ejs --exec tsx src/server.ts",
     "dev:css": "postcss public/css/input.css -o public/css/main.css --watch",
     "build": "npm run build:css && tsc",
     "build:css": "postcss public/css/input.css -o public/css/main.css",

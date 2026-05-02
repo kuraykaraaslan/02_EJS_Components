@@ -1,0 +1,8 @@
+<%
+  var _lang = locals.lang || 'en';
+  var RTL_LANGS = ['ar', 'he', 'fa', 'ur', 'yi', 'ku', 'ps', 'sd'];
+  var _dir = RTL_LANGS.indexOf(_lang) !== -1 ? 'rtl' : 'ltr';
+%>
+<div dir="<%= _dir %>" lang="<%= _lang %>"<%= locals.className ? ' class="' + locals.className + '"' : '' %>>
+  <%- locals.children || '' %>
+</div>
