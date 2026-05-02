@@ -55,9 +55,9 @@
             type="button"
             data-group="<%= gi %>"
             aria-expanded="true"
-            class="group-toggle-btn sidebar-full-only w-full flex items-center justify-between px-3 py-1.5 rounded-md text-xs font-medium uppercase tracking-wider transition-colors mb-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus <%= group.items.some(function(i){ return i.active; }) ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
+            class="group-toggle-btn sidebar-full-only w-full flex items-center justify-between px-3 py-1 rounded-md mb-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus <%= group.items.some(function(i){ return i.active; }) ? 'text-text-primary' : 'text-text-disabled hover:text-text-secondary' %>"
           >
-            <span><%= group.label %></span>
+            <span class="text-[10px] font-semibold uppercase tracking-widest"><%= group.label %></span>
             <i class="fa-solid fa-chevron-down" style="width:.75rem;height:.75rem;transition:transform 200ms" aria-hidden="true"></i>
           </button>
         <% } else { %>
@@ -117,24 +117,28 @@
 
   <aside
     id="mobile-sidebar"
-    class="absolute left-0 top-0 h-full w-56 bg-surface-raised flex flex-col shadow-xl transition-transform duration-200 -translate-x-full overflow-hidden"
+    class="absolute left-0 top-0 h-full w-72 bg-surface-raised flex flex-col shadow-xl transition-transform duration-200 -translate-x-full overflow-hidden"
   >
-    <div class="flex items-center justify-between h-14 border-b border-border px-5 shrink-0">
-      <div>
-        <p class="text-sm font-semibold text-text-primary">UI Showcase</p>
-        <p class="text-xs text-text-secondary">EJS templates</p>
-      </div>
+    <!-- Header: title + close -->
+    <div class="flex items-center justify-between h-14 border-b border-border px-4 shrink-0">
+      <h2 class="text-base font-semibold text-text-primary">Navigation</h2>
       <button
         onclick="closeMobileSidebar()"
-        class="p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface-overlay transition-colors"
+        class="p-1.5 rounded text-text-secondary hover:text-text-primary hover:bg-surface-overlay transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
         aria-label="Close sidebar"
       >
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
 
-    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-1" aria-label="Component navigation (mobile)">
-      <% navGroups.forEach(function(group) { %>
+    <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-4" aria-label="Component navigation (mobile)">
+      <% if (navGroups.length === 0) { %>
+        <div class="px-3 py-6 text-center">
+          <p class="text-xs text-text-disabled">No items yet</p>
+        </div>
+      <% } %>
+
+      <% navGroups.forEach(function(group, gi) { %>
         <div>
           <% if (group.sectionStart) { %>
             <div class="flex items-center gap-2 px-3 pt-3 pb-1">
@@ -143,8 +147,22 @@
               <div class="flex-1 h-px bg-border"></div>
             </div>
           <% } %>
-          <p class="text-xs font-medium uppercase tracking-wider text-text-secondary px-3 mb-0.5"><%= group.label %></p>
-          <ul class="space-y-0.5 mb-2 list-none p-0" role="list">
+
+          <% if (group.collapsible) { %>
+            <button
+              type="button"
+              data-group="m<%= gi %>"
+              aria-expanded="true"
+              class="group-toggle-btn w-full flex items-center justify-between px-3 py-1 rounded-md mb-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus <%= group.items.some(function(i){ return i.active; }) ? 'text-text-primary' : 'text-text-disabled hover:text-text-secondary' %>"
+            >
+              <span class="text-[10px] font-semibold uppercase tracking-widest"><%= group.label %></span>
+              <i class="fa-solid fa-chevron-down" style="width:.75rem;height:.75rem;transition:transform 200ms" aria-hidden="true"></i>
+            </button>
+          <% } else { %>
+            <p class="text-[10px] font-semibold uppercase tracking-widest text-text-disabled px-3 mb-1"><%= group.label %></p>
+          <% } %>
+
+          <ul class="group-items space-y-0.5 mb-2 list-none p-0" role="list" data-group="m<%= gi %>">
             <% group.items.forEach(function(item) { %>
               <%
                 var isActive = item.active || item.id === selectedId;
@@ -165,11 +183,6 @@
           </ul>
         </div>
       <% }); %>
-      <% if (navGroups.length === 0) { %>
-        <div class="px-3 py-6 text-center">
-          <p class="text-xs text-text-disabled">No items yet</p>
-        </div>
-      <% } %>
     </nav>
 
     <div class="border-t border-border shrink-0 p-3 flex items-center gap-2">

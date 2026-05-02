@@ -16,6 +16,18 @@ const NAV_GROUPS: ShowcaseNavGroup[] = [
       { id: 'textarea',     title: 'Textarea',     category: 'Atom', abbr: 'Ta' },
     ],
   },
+  {
+    label: 'Molecules',
+    collapsible: true,
+    items: [
+      { id: 'search-bar',     title: 'SearchBar',     category: 'Molecule', abbr: 'Sb' },
+      { id: 'select',         title: 'Select',         category: 'Molecule', abbr: 'Sl' },
+      { id: 'radio-group',    title: 'RadioGroup',     category: 'Molecule', abbr: 'Rg' },
+      { id: 'checkbox-group', title: 'CheckboxGroup',  category: 'Molecule', abbr: 'Cg' },
+      { id: 'date-picker',    title: 'DatePicker',     category: 'Molecule', abbr: 'Dp' },
+      { id: 'file-input',     title: 'FileInput',      category: 'Molecule', abbr: 'Fi' },
+    ],
+  },
 ];
 
 export default NAV_GROUPS;

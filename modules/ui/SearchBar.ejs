@@ -1,0 +1,39 @@
+<%
+  var _id          = locals.id          || 'search-' + Math.random().toString(36).substr(2, 9);
+  var _placeholder = locals.placeholder || 'Search…';
+  var _val         = locals.value       || '';
+  var _sz          = locals.size        || 'md';
+
+  var sizeClass = {
+    sm: 'py-1.5 text-sm pl-8 pr-3',
+    md: 'py-2 text-sm pl-9 pr-3',
+    lg: 'py-3 text-base pl-10 pr-4'
+  }[_sz] || 'py-2 text-sm pl-9 pr-3';
+
+  var iconSize = { sm: 'left-2.5 text-xs', md: 'left-3 text-sm', lg: 'left-3.5 text-base' }[_sz] || 'left-3 text-sm';
+%>
+<div class="relative flex items-center w-full <%= locals.className || '' %>">
+  <div class="pointer-events-none absolute <%= iconSize %> text-text-tertiary" aria-hidden="true">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </div>
+  <input
+    id="<%= _id %>"
+    type="search"
+    role="searchbox"
+    value="<%= _val %>"
+    placeholder="<%= _placeholder %>"
+    autocomplete="off"
+    <% if (locals.name) { %>name="<%= locals.name %>"<% } %>
+    class="block w-full rounded-md border border-border bg-surface text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary hover:border-text-tertiary transition-colors <%= sizeClass %> <%= _val ? 'pr-8' : '' %>"
+  >
+  <% if (_val) { %>
+    <button
+      type="button"
+      onclick="this.previousElementSibling.value='';this.style.display='none'"
+      aria-label="Clear search"
+      class="absolute right-2 text-text-tertiary hover:text-text-primary transition-colors focus:outline-none rounded"
+    >
+      <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
+    </button>
+  <% } %>
+</div>
