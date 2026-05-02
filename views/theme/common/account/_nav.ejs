@@ -1,0 +1,51 @@
+<%
+  var _activePage = locals.activePage || '';
+  var _user       = locals.user       || {};
+  var nav = [
+    { id: 'profile',         label: 'Profile',          href: '/theme/common/account/profile',         icon: 'fa-solid fa-user' },
+    { id: 'settings',        label: 'Settings',         href: '/theme/common/account/settings',        icon: 'fa-solid fa-gear' },
+    { id: 'addresses',       label: 'Addresses',        href: '/theme/common/account/addresses',       icon: 'fa-solid fa-location-dot' },
+    { id: 'payment-methods', label: 'Payment Methods',  href: '/theme/common/account/payment-methods', icon: 'fa-solid fa-credit-card' },
+    { id: 'orders',          label: 'Order History',    href: '/theme/common/account/orders',          icon: 'fa-solid fa-box-open' },
+  ];
+%>
+<div class="mx-auto max-w-5xl px-4 sm:px-6 py-10">
+
+  <!-- Top bar -->
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <a href="/theme/common" class="text-xs text-text-secondary hover:text-text-primary transition-colors">
+        <i class="fa-solid fa-arrow-left text-xs mr-1" aria-hidden="true"></i>Common Theme
+      </a>
+      <h1 class="text-2xl font-bold text-text-primary mt-1">Account</h1>
+    </div>
+    <%- include('../../../../modules/domain/common/user/UserMenu', {
+      user: { name: _user.name, email: _user.email, profilePicture: _user.profilePicture, role: _user.role },
+      profileHref:  '/theme/common/account/profile',
+      settingsHref: '/theme/common/account/settings',
+      signOutHref:  '/theme/common/auth/login'
+    }) %>
+  </div>
+
+  <div class="flex flex-col md:flex-row gap-6 items-start">
+
+    <!-- Sidebar nav -->
+    <nav class="w-full md:w-52 shrink-0" aria-label="Account navigation">
+      <ul class="space-y-1">
+        <% nav.forEach(function(item) {
+          var isActive = item.id === _activePage;
+        %>
+        <li>
+          <a href="<%= item.href %>"
+            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors <%= isActive ? 'bg-primary-subtle text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
+            <%= isActive ? 'aria-current="page"' : '' %>>
+            <i class="<%= item.icon %> w-4 h-4 text-xs shrink-0" aria-hidden="true"></i>
+            <%= item.label %>
+          </a>
+        </li>
+        <% }); %>
+      </ul>
+    </nav>
+
+    <!-- Page content slot -->
+    <div class="flex-1 min-w-0">

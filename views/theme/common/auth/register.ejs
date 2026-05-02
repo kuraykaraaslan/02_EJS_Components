@@ -1,0 +1,69 @@
+<%
+  var successEmail = locals.successEmail || '';
+%>
+
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md space-y-6">
+
+    <div class="rounded-2xl border border-border bg-surface-raised shadow-sm p-8 space-y-6">
+
+      <!-- Header -->
+      <div class="text-center space-y-1">
+        <div class="flex justify-center mb-3">
+          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-fg text-lg font-bold shadow-sm">C</span>
+        </div>
+        <h1 class="text-2xl font-bold text-text-primary">Create an account</h1>
+        <p class="text-sm text-text-secondary">Join us — it only takes a minute</p>
+      </div>
+
+      <% if (successEmail) { %>
+      <div class="rounded-lg bg-success-subtle border border-success px-4 py-4 space-y-2 text-center">
+        <p class="text-2xl" aria-hidden="true">🎉</p>
+        <p class="text-sm font-semibold text-success-fg">Account created!</p>
+        <p class="text-sm text-success-fg">
+          Welcome aboard. We sent a confirmation to <span class="font-mono"><%= successEmail %></span>.
+        </p>
+        <a href="/theme/common/auth/login"
+          class="inline-block mt-2 text-sm font-medium text-primary hover:underline">
+          Go to login <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+        </a>
+      </div>
+      <% } else { %>
+
+      <!-- OAuth -->
+      <%- include('../../../../modules/domain/common/auth/OAuthButtons', {
+        providers: ['google', 'github', 'discord'],
+        action: '/theme/common/auth/register',
+        method: 'post'
+      }) %>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+        <span class="text-xs text-text-secondary">or sign up with email</span>
+        <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      </div>
+
+      <!-- Form -->
+      <%- include('../../../../modules/domain/common/auth/RegisterForm', {
+        action: '/theme/common/auth/register',
+        error: locals.error || '',
+        errors: locals.errors || {}
+      }) %>
+
+      <p class="text-xs text-text-secondary text-center leading-relaxed">
+        By creating an account you agree to our
+        <span class="text-primary cursor-pointer hover:underline">Terms of Service</span>
+        and
+        <span class="text-primary cursor-pointer hover:underline">Privacy Policy</span>.
+      </p>
+
+      <% } %>
+    </div>
+
+    <p class="text-center text-sm text-text-secondary">
+      Already have an account?
+      <a href="/theme/common/auth/login" class="text-primary font-medium hover:underline">Sign in</a>
+    </p>
+
+  </div>
+</div>

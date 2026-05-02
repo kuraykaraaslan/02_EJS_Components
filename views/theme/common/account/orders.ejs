@@ -1,0 +1,104 @@
+<%
+  var user       = locals.user       || {};
+  var orders     = locals.orders     || [];
+  var filter     = locals.filter     || 'ALL';
+  var locale     = 'tr-TR';
+
+  var STATUS_FILTERS = [
+    { label: 'All',      value: 'ALL' },
+    { label: 'Paid',     value: 'PAID' },
+    { label: 'Pending',  value: 'PENDING' },
+    { label: 'Refunded', value: 'REFUNDED' },
+    { label: 'Failed',   value: 'FAILED' },
+  ];
+
+  var filtered = filter === 'ALL' ? orders : orders.filter(function(o) { return o.status === filter; });
+
+  function fmtCurrency(n, currency) {
+    return (n || 0).toLocaleString(locale, { style: 'currency', currency: currency || 'TRY', minimumFractionDigits: 2 });
+  }
+
+  var totalPaid     = orders.filter(function(o) { return o.status === 'PAID'; }).reduce(function(s, o) { return s + o.amount; }, 0);
+  var totalRefunded = orders.filter(function(o) { return o.status === 'REFUNDED'; }).reduce(function(s, o) { return s + o.amount; }, 0);
+  var orderCurrency = orders[0] && orders[0].currency || 'TRY';
+%>
+
+<%- include('./_nav', { activePage: 'orders', user: user }) %>
+
+  <div class="space-y-6">
+    <h2 class="text-lg font-semibold text-text-primary">Order History</h2>
+
+    <!-- Status filter tabs -->
+    <div class="flex gap-1 flex-wrap">
+      <% STATUS_FILTERS.forEach(function(f) { %>
+      <a href="/theme/common/account/orders?filter=<%= f.value %>"
+        class="rounded-full px-3 py-1 text-xs font-medium transition-colors <%= filter === f.value ? 'bg-primary text-primary-fg' : 'bg-surface-overlay text-text-secondary hover:text-text-primary' %>">
+        <%= f.label %>
+      </a>
+      <% }); %>
+    </div>
+
+    <% if (filtered.length === 0) { %>
+    <div class="rounded-xl border border-border bg-surface-raised py-12 text-center space-y-2">
+      <p class="text-2xl" aria-hidden="true">📭</p>
+      <p class="text-sm font-medium text-text-primary">No orders found</p>
+      <p class="text-sm text-text-secondary">Try a different filter.</p>
+    </div>
+    <% } else { %>
+    <div class="space-y-3">
+      <% filtered.forEach(function(order, idx) { %>
+      <div class="rounded-xl border border-border bg-surface-raised p-4 transition-colors space-y-3"
+        id="order-<%= order.paymentId %>">
+        <button type="button"
+          onclick="toggleOrder('<%= order.paymentId %>')"
+          class="w-full text-left flex items-center justify-between gap-3 flex-wrap focus-visible:outline-none">
+          <div class="space-y-0.5">
+            <p class="text-xs text-text-secondary font-mono"><%= order.paymentId %></p>
+            <p class="text-sm font-medium text-text-primary"><%= order.provider %></p>
+          </div>
+          <div class="flex items-center gap-3">
+            <%- include('../../../../modules/domain/common/money/PriceDisplay', {
+              amount: order.amount,
+              currency: order.currency || 'TRY',
+              locale: locale,
+              size: 'md'
+            }) %>
+            <%- include('../../../../modules/domain/common/payment/PaymentStatusBadge', {
+              status: order.status, size: 'sm', dot: true
+            }) %>
+          </div>
+        </button>
+
+        <div id="order-detail-<%= order.paymentId %>" class="hidden pt-3 border-t border-border">
+          <%- include('../../../../modules/domain/common/payment/PaymentSummaryCard', {
+            payment: order
+          }) %>
+        </div>
+      </div>
+      <% }); %>
+    </div>
+    <% } %>
+
+    <!-- Summary row -->
+    <div class="rounded-lg bg-surface-overlay border border-border px-4 py-3 flex flex-wrap gap-4 text-sm">
+      <span class="text-text-secondary">
+        Total paid: <span class="font-semibold text-text-primary"><%= fmtCurrency(totalPaid, orderCurrency) %></span>
+      </span>
+      <span class="text-text-secondary">
+        Refunded: <span class="font-semibold text-text-primary"><%= fmtCurrency(totalRefunded, orderCurrency) %></span>
+      </span>
+    </div>
+
+  </div>
+
+<%- include('./_nav-close') %>
+
+<script>
+function toggleOrder(id) {
+  var detail = document.getElementById('order-detail-' + id);
+  var row    = document.getElementById('order-' + id);
+  if (!detail) return;
+  var open = detail.classList.toggle('hidden');
+  if (row) row.classList.toggle('border-primary', !open);
+}
+</script>

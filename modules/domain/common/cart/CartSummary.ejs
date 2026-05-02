@@ -1,0 +1,70 @@
+<%
+  var _cart         = locals.cart         || {};
+  var _items        = _cart.items         || [];
+  var _totals       = _cart.totals        || {};
+  var _appliedCoupon= locals.appliedCoupon|| null;
+  var _couponAction = locals.couponAction || null;
+  var _couponRemoveAction = locals.couponRemoveAction || null;
+  var _couponError  = locals.couponError  || null;
+  var _couponSuccess= locals.couponSuccess|| null;
+  var _updateAction = locals.updateAction || null;
+  var _removeAction = locals.removeAction || null;
+  var _checkoutHref = locals.checkoutHref || null;
+  var _checkoutLabel= locals.checkoutLabel|| 'Proceed to Checkout';
+  var _locale       = locals.locale       || 'tr-TR';
+  var currency      = _totals.currency    || 'TRY';
+
+  function fmtPrice(n) {
+    return (n || 0).toLocaleString(_locale, { style: 'currency', currency: currency, minimumFractionDigits: 2 });
+  }
+  var totalQty = _items.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+%>
+
+<div class="space-y-4<%= locals.className ? ' ' + locals.className : '' %>">
+
+  <% if (_items.length === 0) { %>
+  <!-- Empty cart -->
+  <div class="rounded-xl border border-border bg-surface-raised py-16 text-center space-y-3">
+    <i class="fa-solid fa-cart-shopping text-4xl text-text-disabled" aria-hidden="true"></i>
+    <p class="text-sm font-medium text-text-primary">Your cart is empty</p>
+    <p class="text-sm text-text-secondary">Add some items to get started.</p>
+  </div>
+  <% } else { %>
+
+  <!-- Items -->
+  <div class="rounded-xl border border-border bg-surface-raised px-5 divide-y divide-border">
+    <% _items.forEach(function(item) { %>
+    <%- include('./CartItem', {
+      item: item,
+      updateAction: _updateAction,
+      removeAction: _removeAction,
+      locale: _locale
+    }) %>
+    <% }); %>
+  </div>
+
+  <!-- Coupon -->
+  <% if (_couponAction || _appliedCoupon) { %>
+  <%- include('../discount/CouponInput', {
+    action: _couponAction,
+    appliedCode: _appliedCoupon,
+    removeAction: _couponRemoveAction,
+    couponError: _couponError,
+    couponSuccess: _couponSuccess
+  }) %>
+  <% } %>
+
+  <!-- Totals -->
+  <%- include('../money/OrderTotalsCard', { totals: _totals, locale: _locale }) %>
+
+  <!-- Checkout CTA -->
+  <% if (_checkoutHref) { %>
+  <a href="<%= _checkoutHref %>"
+    class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus">
+    <%= _checkoutLabel %>
+    <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+  </a>
+  <% } %>
+
+  <% } %>
+</div>

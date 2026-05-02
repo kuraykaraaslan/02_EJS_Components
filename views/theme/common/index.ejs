@@ -1,0 +1,108 @@
+<%
+  var sections = [
+    {
+      id: 'auth', title: 'Authentication', tag: 'common/auth',
+      pages: [
+        { title: 'Login',           description: 'Email + password with OAuth providers and remember-me.',               href: '/theme/common/auth/login',           icon: 'fa-solid fa-key' },
+        { title: 'Register',        description: 'Account creation with password confirmation and OAuth shortcuts.',      href: '/theme/common/auth/register',        icon: 'fa-solid fa-user' },
+        { title: 'Forgot Password', description: 'Request a reset link via email.',                                      href: '/theme/common/auth/forgot-password',  icon: 'fa-solid fa-envelope' },
+        { title: 'Reset Password',  description: 'Set a new password after clicking the email link.',                    href: '/theme/common/auth/reset-password',   icon: 'fa-solid fa-lock' },
+        { title: 'Verify Email',    description: '6-digit OTP entry with countdown timer and paste support.',             href: '/theme/common/auth/verify-email',     icon: 'fa-solid fa-envelope-circle-check' },
+        { title: 'Two-Factor Auth', description: 'Authenticator-app OTP code entry with recovery options.',              href: '/theme/common/auth/two-factor',       icon: 'fa-solid fa-shield' },
+      ]
+    },
+    {
+      id: 'cart', title: 'Cart', tag: 'common/cart',
+      pages: [
+        { title: 'Shopping Cart',   description: 'Full cart with quantity controls, remove, coupon, and totals.',        href: '/theme/common/cart',                  icon: 'fa-solid fa-cart-shopping' },
+      ]
+    },
+    {
+      id: 'payment', title: 'Payment', tag: 'common/payment',
+      pages: [
+        { title: 'Payment Components', description: 'Showcase of all payment UI pieces.',                               href: '/theme/common/payment',               icon: 'fa-solid fa-lightbulb' },
+        { title: 'Checkout',        description: '4-step flow: address → method → card → review.',                      href: '/theme/common/payment/checkout',      icon: 'fa-solid fa-credit-card' },
+      ]
+    },
+    {
+      id: 'utility', title: 'Utility', tag: 'common/utility',
+      pages: [
+        { title: 'Not Found (404)', description: 'Full-page 404 with gradient icon, action buttons and decorative dots.',href: '/theme/common/not-found',            icon: 'fa-solid fa-magnifying-glass' },
+      ]
+    },
+    {
+      id: 'account', title: 'Account', tag: 'common/user · common/address',
+      pages: [
+        { title: 'Profile',         description: 'View and edit display name, username, bio, avatar URL.',              href: '/theme/common/account/profile',        icon: 'fa-solid fa-id-card' },
+        { title: 'Settings',        description: 'Theme, language, notification toggles and password change.',          href: '/theme/common/account/settings',       icon: 'fa-solid fa-gear' },
+        { title: 'Address Book',    description: 'Manage delivery addresses with full add / edit / delete.',             href: '/theme/common/account/addresses',      icon: 'fa-solid fa-location-dot' },
+        { title: 'Payment Methods', description: 'Saved cards: add, remove, set default.',                              href: '/theme/common/account/payment-methods',icon: 'fa-solid fa-credit-card' },
+        { title: 'Order History',   description: 'Filterable list with inline payment detail and totals summary.',       href: '/theme/common/account/orders',         icon: 'fa-solid fa-box' },
+      ]
+    },
+  ];
+  var totalPages = sections.reduce(function(s, sec) { return s + sec.pages.length; }, 0);
+%>
+
+<div class="mx-auto max-w-3xl px-4 sm:px-6 py-16 space-y-16">
+
+  <!-- Hero -->
+  <div class="text-center space-y-4">
+    <div class="inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-4 py-1.5 text-xs font-medium text-text-secondary">
+      <span class="h-1.5 w-1.5 rounded-full bg-success inline-block" aria-hidden="true"></span>
+      modules/domains/common
+    </div>
+    <h1 class="text-4xl font-bold text-text-primary tracking-tight">Common Theme</h1>
+    <p class="text-lg text-text-secondary max-w-xl mx-auto leading-relaxed">
+      <%= totalPages %> production-ready pages covering authentication, cart, payment, and account management.
+    </p>
+  </div>
+
+  <!-- Sections -->
+  <% sections.forEach(function(section) { %>
+  <section class="space-y-4" aria-labelledby="<%= section.id %>-heading">
+    <div class="flex items-center gap-3">
+      <h2 id="<%= section.id %>-heading" class="text-xl font-semibold text-text-primary"><%= section.title %></h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <span class="text-xs text-text-secondary font-mono"><%= section.tag %></span>
+    </div>
+    <div class="grid gap-3">
+      <% section.pages.forEach(function(page) { %>
+      <a href="<%= page.href %>"
+        class="group flex items-start gap-4 rounded-xl border border-border bg-surface-raised p-4 hover:border-primary hover:shadow-md transition-all">
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-subtle text-primary text-lg">
+          <i class="<%= page.icon %>" aria-hidden="true"></i>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors"><%= page.title %></p>
+          <p class="text-xs text-text-secondary mt-0.5 leading-relaxed"><%= page.description %></p>
+        </div>
+        <i class="fa-solid fa-arrow-right w-4 h-4 text-text-secondary group-hover:text-primary transition-colors shrink-0 mt-0.5 text-sm" aria-hidden="true"></i>
+      </a>
+      <% }); %>
+    </div>
+  </section>
+  <% }); %>
+
+  <!-- Components used -->
+  <section class="rounded-xl border border-border bg-surface-raised p-6 space-y-3">
+    <h2 class="text-sm font-semibold text-text-primary">All components used</h2>
+    <div class="flex flex-wrap gap-2">
+      <% [
+        'LoginForm','RegisterForm','ForgotPasswordForm','ChangePasswordForm',
+        'OAuthButtons','SessionExpiredBanner',
+        'CartItem','CartSummary','CartPreview',
+        'CreditCardForm','CreditCardVisual','PaymentMethodSelector',
+        'SavedCardSelector','PaymentSummaryCard','PaymentStatusBadge',
+        'OrderTotalsCard','CouponInput','PriceDisplay',
+        'AddressCard','AddressForm','AddressSelector',
+        'UserProfileCard','UserProfileForm','UserPreferencesForm',
+        'UserAvatar','UserMenu','UserRoleBadge','UserStatusBadge',
+        'LanguageSwitcher','CurrencySelector','NotFoundPage',
+      ].forEach(function(name) { %>
+      <span class="rounded-md bg-surface-overlay px-2.5 py-1 text-xs font-mono text-text-secondary"><%= name %></span>
+      <% }); %>
+    </div>
+  </section>
+
+</div>

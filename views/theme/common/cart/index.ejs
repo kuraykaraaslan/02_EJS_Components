@@ -1,0 +1,31 @@
+<%
+  var cart          = locals.cart          || { items: [], totals: {} };
+  var appliedCoupon = locals.appliedCoupon || null;
+  var couponError   = locals.couponError   || null;
+  var couponSuccess = locals.couponSuccess || null;
+  var totalQty = cart.items.reduce(function(s, i) { return s + (i.quantity || 1); }, 0);
+%>
+
+<div class="mx-auto max-w-3xl px-4 sm:px-6 py-10 space-y-6">
+
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-text-primary">Shopping Cart</h1>
+    <% if (cart.items.length > 0) { %>
+    <span class="text-sm text-text-secondary"><%= totalQty %> item<%= totalQty !== 1 ? 's' : '' %></span>
+    <% } %>
+  </div>
+
+  <%- include('../../../../modules/domain/common/cart/CartSummary', {
+    cart: cart,
+    appliedCoupon: appliedCoupon,
+    couponError: couponError,
+    couponSuccess: couponSuccess,
+    couponAction: '/theme/common/cart/coupon',
+    couponRemoveAction: '/theme/common/cart/coupon/remove',
+    updateAction: '/theme/common/cart/quantity',
+    removeAction: '/theme/common/cart/remove',
+    checkoutHref: '/theme/common/payment/checkout',
+    checkoutLabel: 'Proceed to Checkout'
+  }) %>
+
+</div>

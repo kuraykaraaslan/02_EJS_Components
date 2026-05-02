@@ -1,14 +1,12 @@
 import { Router } from 'express';
+import commonRouter from './themes/common';
 
 const router = Router();
 
-// Theme routes are registered here as themes are created.
-// Example:
-// import landingRouter from './themes/landing';
-// router.use('/landing', landingRouter);
+router.use('/common', commonRouter);
 
-router.get('/', (req, res) => {
-  res.redirect('/');
+router.get('/', (_req, res) => {
+  res.redirect('/theme/common');
 });
 
 export default router;

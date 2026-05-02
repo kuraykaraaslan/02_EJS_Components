@@ -1,0 +1,279 @@
+<%
+  var addresses    = locals.addresses    || [];
+  var cards        = locals.cards        || [];
+  var demoCart     = locals.demoCart     || { items: [] };
+  var orderTotals  = locals.orderTotals  || {};
+  var locale       = 'tr-TR';
+  var currency     = orderTotals.currency || 'TRY';
+  function fmt(n) {
+    return (n || 0).toLocaleString(locale, { style: 'currency', currency: currency, minimumFractionDigits: 2 });
+  }
+%>
+
+<div class="mx-auto max-w-5xl px-4 sm:px-6 py-10" id="checkout-root">
+
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-text-primary">Checkout</h1>
+    <p class="text-sm text-text-secondary mt-1">Complete your purchase securely</p>
+  </div>
+
+  <!-- Success state (hidden until payment) -->
+  <div id="checkout-success" class="hidden">
+    <div class="flex flex-col items-center justify-center py-16 space-y-6 text-center max-w-md mx-auto">
+      <span class="flex h-20 w-20 items-center justify-center rounded-full bg-success-subtle">
+        <i class="fa-solid fa-check text-success text-4xl" aria-hidden="true"></i>
+      </span>
+      <div class="space-y-2">
+        <h2 class="text-2xl font-bold text-text-primary">Payment successful!</h2>
+        <p class="text-text-secondary"><%= fmt(orderTotals.total) %> was charged. A receipt has been sent to your email.</p>
+      </div>
+      <div class="w-full space-y-4 text-left">
+        <%- include('../../../../modules/domain/common/payment/PaymentSummaryCard', {
+          payment: { paymentId: 'pay_demo_001', provider: 'Stripe', providerPaymentId: 'pi_3NxYz2EwLHMpEt9Q1aB2c3D4', method: 'CREDIT_CARD', status: 'PAID', amount: orderTotals.total, currency: currency }
+        }) %>
+      </div>
+      <button type="button" onclick="location.reload()"
+        class="inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors border border-border text-text-primary hover:bg-surface-overlay px-4 py-2 text-sm">
+        Start over
+      </button>
+    </div>
+  </div>
+
+  <!-- Checkout steps -->
+  <div id="checkout-steps" class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
+
+    <!-- Left: steps -->
+    <div class="space-y-4">
+
+      <!-- Step 1: Address -->
+      <div class="checkout-step rounded-2xl border transition-all bg-surface-raised overflow-hidden border-primary shadow-sm" data-step="1" id="step-1">
+        <div class="flex items-center gap-3 px-5 py-4">
+          <span class="step-badge flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-primary text-primary-fg transition-colors">1</span>
+          <h2 class="flex-1 text-sm font-semibold text-text-primary">Delivery address</h2>
+        </div>
+        <div class="step-body px-5 pb-5 border-t border-border pt-4">
+          <div id="addr-list">
+            <%- include('../../../../modules/domain/common/address/AddressSelector', {
+              addresses: addresses,
+              selectedIndex: 0
+            }) %>
+            <button type="button" onclick="advanceStep(2)"
+              class="mt-4 inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">
+              Continue
+            </button>
+          </div>
+        </div>
+        <div class="step-summary hidden px-5 pb-4 border-t border-border pt-3 opacity-70">
+          <%- include('../../../../modules/domain/common/address/AddressCard', {
+            address: addresses[0] || {}
+          }) %>
+        </div>
+      </div>
+
+      <!-- Step 2: Payment method -->
+      <div class="checkout-step rounded-2xl border transition-all bg-surface-raised overflow-hidden border-border" data-step="2" id="step-2">
+        <div class="flex items-center gap-3 px-5 py-4">
+          <span class="step-badge flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-surface-overlay text-text-disabled transition-colors">2</span>
+          <h2 class="flex-1 text-sm font-semibold text-text-disabled">Payment method</h2>
+        </div>
+        <div class="step-body hidden px-5 pb-5 border-t border-border pt-4">
+          <%- include('../../../../modules/domain/common/payment/PaymentMethodSelector', {
+            name: 'checkoutPaymentMethod',
+            value: 'CREDIT_CARD'
+          }) %>
+          <button type="button" onclick="advanceStep(3)" class="mt-4 inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">Continue</button>
+        </div>
+        <div class="step-summary hidden px-5 pb-4 border-t border-border pt-3 opacity-70">
+          <p class="text-sm text-text-secondary">Credit Card</p>
+        </div>
+      </div>
+
+      <!-- Step 3: Card details -->
+      <div class="checkout-step rounded-2xl border transition-all bg-surface-raised overflow-hidden border-border" data-step="3" id="step-3">
+        <div class="flex items-center gap-3 px-5 py-4">
+          <span class="step-badge flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-surface-overlay text-text-disabled transition-colors">3</span>
+          <h2 class="flex-1 text-sm font-semibold text-text-disabled">Card details</h2>
+        </div>
+        <div class="step-body hidden px-5 pb-5 border-t border-border pt-4">
+          <%- include('../../../../modules/domain/common/payment/SavedCardSelector', {
+            cards: cards,
+            selectedCardId: cards[0] && cards[0].cardId
+          }) %>
+          <button type="button" onclick="advanceStep(4)" class="mt-4 inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">Continue</button>
+        </div>
+        <div class="step-summary hidden px-5 pb-4 border-t border-border pt-3 opacity-70">
+          <p class="text-sm text-text-secondary font-mono">•••• •••• •••• <%= cards[0] && cards[0].last4 || '4242' %></p>
+        </div>
+      </div>
+
+      <!-- Step 4: Review & pay -->
+      <div class="checkout-step rounded-2xl border transition-all bg-surface-raised overflow-hidden border-border" data-step="4" id="step-4">
+        <div class="flex items-center gap-3 px-5 py-4">
+          <span class="step-badge flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold bg-surface-overlay text-text-disabled transition-colors">4</span>
+          <h2 class="flex-1 text-sm font-semibold text-text-disabled">Review &amp; pay</h2>
+        </div>
+        <div class="step-body hidden px-5 pb-5 border-t border-border pt-4 space-y-4">
+
+          <!-- Order items preview -->
+          <div class="rounded-lg border border-border bg-surface-base p-4 text-sm text-text-secondary space-y-1">
+            <p class="text-text-primary font-medium mb-2">Order items</p>
+            <div class="flex justify-between">
+              <span>Pro Plan — Annual subscription</span>
+              <span class="font-mono text-text-primary"><%= fmt(999.90) %></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Design System Add-on</span>
+              <span class="font-mono text-text-primary"><%= fmt(300.00) %></span>
+            </div>
+          </div>
+
+          <!-- Coupon -->
+          <%- include('../../../../modules/domain/common/discount/CouponInput', {
+            action: '#',
+            appliedCode: null
+          }) %>
+
+          <!-- Payment status badges -->
+          <div class="rounded-lg border border-border bg-surface-raised px-4 py-3 space-y-2">
+            <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Payment status</p>
+            <div class="flex flex-wrap gap-2">
+              <% ['PENDING','AUTHORIZED','PAID','FAILED','CANCELLED','REFUNDED'].forEach(function(s) { %>
+              <%- include('../../../../modules/domain/common/payment/PaymentStatusBadge', { status: s, size: 'sm', dot: true }) %>
+              <% }); %>
+            </div>
+          </div>
+
+          <!-- Pay button -->
+          <button type="button" id="pay-btn" onclick="handlePay()"
+            class="w-full h-12 inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-colors bg-primary text-primary-fg hover:bg-primary-hover text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus">
+            Pay <%= fmt(orderTotals.total) %>
+          </button>
+
+          <p class="text-xs text-center text-text-secondary">🔒 Payments are encrypted and secure</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: cart preview + order summary -->
+    <aside class="space-y-4 lg:sticky lg:top-24">
+      <%- include('../../../../modules/domain/common/cart/CartPreview', {
+        cart: demoCart,
+        defaultOpen: true,
+        id: 'checkout-cart-preview'
+      }) %>
+      <%- include('../../../../modules/domain/common/money/OrderTotalsCard', { totals: orderTotals }) %>
+
+      <% if (addresses[0]) { %>
+      <div id="delivery-to" class="hidden rounded-xl border border-border bg-surface-raised p-4 space-y-2">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Delivery to</p>
+        <%- include('../../../../modules/domain/common/address/AddressCard', { address: addresses[0] }) %>
+      </div>
+      <% } %>
+    </aside>
+
+  </div><!-- /checkout-steps -->
+</div>
+
+<script>
+(function () {
+  var currentStep = 1;
+  var totalSteps  = 4;
+
+  function advanceStep(to) {
+    // Mark current step done
+    var fromEl = document.getElementById('step-' + currentStep);
+    if (fromEl) {
+      fromEl.classList.remove('border-primary', 'shadow-sm');
+      fromEl.classList.add('border-border');
+      var badge = fromEl.querySelector('.step-badge');
+      badge.innerHTML = '<i class="fa-solid fa-check text-xs text-white" aria-hidden="true"></i>';
+      badge.className = badge.className.replace('bg-surface-overlay text-text-disabled', '').replace('bg-primary text-primary-fg', '') + ' bg-success text-white';
+      var body    = fromEl.querySelector('.step-body');
+      var summary = fromEl.querySelector('.step-summary');
+      var title   = fromEl.querySelector('h2');
+      if (body)    body.classList.add('hidden');
+      if (summary) summary.classList.remove('hidden');
+      if (title)   { title.className = title.className.replace('text-text-primary','').replace('text-text-disabled','') + ' text-text-secondary'; }
+
+      // Add Edit button
+      var hdr = fromEl.querySelector('.flex.items-center.gap-3.px-5');
+      if (hdr && !hdr.querySelector('.edit-btn')) {
+        var editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'edit-btn text-primary text-xs font-medium hover:underline shrink-0';
+        editBtn.textContent = 'Edit';
+        (function(step) { editBtn.addEventListener('click', function () { goToStep(step); }); })(currentStep);
+        hdr.appendChild(editBtn);
+      }
+    }
+
+    // Show delivery address in sidebar after step 1
+    if (currentStep === 1) {
+      var deliverTo = document.getElementById('delivery-to');
+      if (deliverTo) deliverTo.classList.remove('hidden');
+    }
+
+    currentStep = to;
+    var toEl = document.getElementById('step-' + to);
+    if (toEl) {
+      toEl.classList.add('border-primary', 'shadow-sm');
+      toEl.classList.remove('border-border');
+      var badge = toEl.querySelector('.step-badge');
+      badge.textContent = to;
+      badge.className = badge.className.replace('bg-surface-overlay text-text-disabled','').replace('bg-success text-white','') + ' bg-primary text-primary-fg';
+      var body  = toEl.querySelector('.step-body');
+      var title = toEl.querySelector('h2');
+      if (body)  body.classList.remove('hidden');
+      if (title) { title.className = title.className.replace('text-text-disabled','').replace('text-text-secondary','') + ' text-text-primary'; }
+    }
+  }
+
+  function goToStep(step) {
+    // Can only go back, not forward
+    if (step >= currentStep) return;
+    // Close all steps after "step"
+    for (var s = step; s <= currentStep; s++) {
+      var el = document.getElementById('step-' + s);
+      if (!el) continue;
+      el.classList.remove('border-primary', 'shadow-sm');
+      el.classList.add('border-border');
+      var badge = el.querySelector('.step-badge');
+      if (s < currentStep) {
+        badge.innerHTML = '<i class="fa-solid fa-check text-xs text-white" aria-hidden="true"></i>';
+        badge.className = badge.className.replace('bg-primary text-primary-fg','').replace('bg-surface-overlay text-text-disabled','') + ' bg-success text-white';
+        var body2    = el.querySelector('.step-body');
+        var summary2 = el.querySelector('.step-summary');
+        if (body2)    body2.classList.add('hidden');
+        if (summary2) summary2.classList.remove('hidden');
+      } else {
+        // reset the target step
+        badge.textContent = s;
+        badge.className = badge.className.replace('bg-success text-white','').replace('bg-surface-overlay text-text-disabled','') + ' bg-primary text-primary-fg';
+        var body3    = el.querySelector('.step-body');
+        var summary3 = el.querySelector('.step-summary');
+        if (body3)    body3.classList.remove('hidden');
+        if (summary3) summary3.classList.add('hidden');
+        el.classList.add('border-primary', 'shadow-sm');
+        el.classList.remove('border-border');
+        var title3 = el.querySelector('h2');
+        if (title3) title3.className = title3.className.replace('text-text-disabled','').replace('text-text-secondary','') + ' text-text-primary';
+      }
+    }
+    currentStep = step;
+  }
+
+  function handlePay() {
+    var btn = document.getElementById('pay-btn');
+    btn.textContent = 'Processing…';
+    btn.disabled = true;
+    setTimeout(function () {
+      document.getElementById('checkout-steps').classList.add('hidden');
+      document.getElementById('checkout-success').classList.remove('hidden');
+    }, 1600);
+  }
+
+  window.advanceStep = advanceStep;
+  window.handlePay   = handlePay;
+})();
+</script>

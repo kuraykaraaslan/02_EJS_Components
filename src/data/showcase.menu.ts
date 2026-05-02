@@ -110,6 +110,13 @@ const NAV_GROUPS: ShowcaseNavGroup[] = [
       { id: 'splash-screen',   title: 'SplashScreen',   category: 'App', abbr: 'SS' },
     ],
   },
+  {
+    label: 'Themes',
+    collapsible: true,
+    items: [
+      { id: 'theme-common', title: 'Common Theme', category: 'Theme', abbr: 'CT', href: '/theme/common' },
+    ],
+  },
 ];
 
 export default NAV_GROUPS;

@@ -1,0 +1,81 @@
+<%
+  var _item          = locals.item          || {};
+  var _updateAction  = locals.updateAction  || null;
+  var _removeAction  = locals.removeAction  || null;
+  var _currency      = _item.currency       || 'TRY';
+  var _locale        = locals.locale        || 'tr-TR';
+  var lineTotal      = (_item.price || 0) * (_item.quantity || 1);
+  var fmtPrice = function(n) {
+    return n.toLocaleString(_locale, { style: 'currency', currency: _currency, minimumFractionDigits: 2 });
+  };
+%>
+<div class="flex gap-4 py-4 border-b border-border last:border-0">
+
+  <!-- Thumbnail -->
+  <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-surface-overlay border border-border overflow-hidden">
+    <% if (_item.image) { %>
+    <img src="<%= _item.image %>" alt="<%= _item.name %>" class="h-full w-full object-cover">
+    <% } else { %>
+    <i class="fa-solid fa-box text-text-disabled text-xl" aria-hidden="true"></i>
+    <% } %>
+  </div>
+
+  <!-- Info -->
+  <div class="flex-1 min-w-0">
+    <p class="text-sm font-semibold text-text-primary leading-snug"><%= _item.name %></p>
+    <% if (_item.description) { %>
+    <p class="text-xs text-text-secondary mt-0.5 leading-relaxed"><%= _item.description %></p>
+    <% } %>
+    <% if (_item.variant) { %>
+    <p class="text-xs text-text-secondary font-mono mt-0.5"><%= _item.variant %></p>
+    <% } %>
+
+    <div class="flex items-center justify-between mt-2 gap-2">
+      <!-- Quantity -->
+      <% if (_updateAction && _item.maxQuantity > 1) { %>
+      <div class="flex items-center gap-1">
+        <form action="<%= _updateAction %>" method="post" class="contents">
+          <input type="hidden" name="cartItemId" value="<%= _item.cartItemId %>">
+          <button type="submit" name="qty" value="<%= Math.max(1, (_item.quantity || 1) - 1) %>"
+            class="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text-secondary hover:bg-surface-overlay transition-colors"
+            <%= (_item.quantity || 1) <= 1 ? 'disabled' : '' %>>
+            <i class="fa-solid fa-minus text-xs" aria-hidden="true"></i>
+          </button>
+        </form>
+        <span class="w-7 text-center text-sm font-medium text-text-primary tabular-nums"><%= _item.quantity || 1 %></span>
+        <form action="<%= _updateAction %>" method="post" class="contents">
+          <input type="hidden" name="cartItemId" value="<%= _item.cartItemId %>">
+          <button type="submit" name="qty" value="<%= Math.min(_item.maxQuantity, (_item.quantity || 1) + 1) %>"
+            class="flex h-7 w-7 items-center justify-center rounded-md border border-border text-text-secondary hover:bg-surface-overlay transition-colors"
+            <%= (_item.quantity || 1) >= _item.maxQuantity ? 'disabled' : '' %>>
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i>
+          </button>
+        </form>
+      </div>
+      <% } else { %>
+      <span class="text-xs text-text-secondary">Qty: <%= _item.quantity || 1 %></span>
+      <% } %>
+
+      <!-- Price -->
+      <div class="text-right shrink-0">
+        <p class="text-sm font-semibold text-text-primary tabular-nums"><%= fmtPrice(lineTotal) %></p>
+        <% if ((_item.quantity || 1) > 1) { %>
+        <p class="text-xs text-text-secondary tabular-nums"><%= fmtPrice(_item.price || 0) %> each</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Remove -->
+  <% if (_removeAction) { %>
+  <form action="<%= _removeAction %>" method="post" class="shrink-0 self-start">
+    <input type="hidden" name="cartItemId" value="<%= _item.cartItemId %>">
+    <button type="submit"
+      class="flex h-8 w-8 items-center justify-center rounded-md text-text-disabled hover:text-error hover:bg-error-subtle transition-colors"
+      aria-label="Remove <%= _item.name %>">
+      <i class="fa-solid fa-xmark text-sm" aria-hidden="true"></i>
+    </button>
+  </form>
+  <% } %>
+
+</div>

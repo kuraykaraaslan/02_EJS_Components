@@ -1,0 +1,119 @@
+<%
+  var success = locals.success || false;
+%>
+
+<% if (success) { %>
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md text-center space-y-5">
+    <span class="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-success-subtle text-3xl">🔓</span>
+    <div class="space-y-1">
+      <h1 class="text-2xl font-bold text-text-primary">Signed in!</h1>
+      <p class="text-sm text-text-secondary">Two-factor authentication passed.</p>
+    </div>
+    <a href="/theme/common/account/profile"
+      class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+      Go to account <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+    </a>
+  </div>
+</div>
+<% } else { %>
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md space-y-6">
+
+    <div class="rounded-2xl border border-border bg-surface-raised shadow-sm p-8 space-y-6">
+
+      <div class="text-center space-y-1">
+        <span class="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-warning-subtle mb-3">
+          <i class="fa-solid fa-shield w-6 h-6 text-warning text-xl" aria-hidden="true"></i>
+        </span>
+        <h1 class="text-2xl font-bold text-text-primary">Two-factor authentication</h1>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          Open your authenticator app and enter the 6-digit code.
+        </p>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-text-primary mb-3 text-center">Authentication code</label>
+          <div class="flex gap-2 justify-center" id="otp-container">
+            <% for (var i = 0; i < 6; i++) { %>
+            <input type="text" inputmode="numeric" maxlength="1" data-idx="<%= i %>"
+              class="otp-input h-12 w-10 rounded-lg border border-border bg-surface-base text-center text-xl font-bold text-text-primary tabular-nums caret-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:border-border-focus"
+              aria-label="Digit <%= i + 1 %>">
+            <% } %>
+          </div>
+          <p class="text-xs text-error text-center mt-2 hidden" id="otp-error"></p>
+        </div>
+
+        <button type="button" id="verify-btn"
+          class="w-full inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">
+          Verify
+        </button>
+      </div>
+
+      <div class="rounded-lg bg-surface-overlay border border-border px-4 py-3 space-y-1">
+        <p class="text-xs font-semibold text-text-primary">Can't access your authenticator?</p>
+        <p class="text-xs text-text-secondary">
+          Use a <span class="text-primary cursor-pointer hover:underline">recovery code</span>
+          or contact <span class="text-primary cursor-pointer hover:underline">support</span>.
+        </p>
+      </div>
+
+    </div>
+
+    <p class="text-center text-sm text-text-secondary">
+      <a href="/theme/common/auth/login" class="text-primary hover:underline">← Back to login</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var inputs    = document.querySelectorAll('.otp-input');
+  var errEl     = document.getElementById('otp-error');
+  var verifyBtn = document.getElementById('verify-btn');
+
+  inputs.forEach(function (input, i) {
+    input.addEventListener('input', function () {
+      var val = input.value.replace(/\D/g, '').slice(-1);
+      input.value = val;
+      errEl.classList.add('hidden');
+      if (val && i < inputs.length - 1) inputs[i + 1].focus();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !input.value && i > 0) inputs[i - 1].focus();
+    });
+  });
+
+  document.getElementById('otp-container').addEventListener('paste', function (e) {
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    text.split('').forEach(function (ch, i) { if (inputs[i]) inputs[i].value = ch; });
+    var last = Math.min(text.length, inputs.length - 1);
+    inputs[last].focus();
+  });
+
+  verifyBtn.addEventListener('click', function () {
+    var code = Array.from(inputs).map(function (inp) { return inp.value; }).join('');
+    if (code.length < 6) {
+      errEl.textContent = 'Please enter the full 6-digit code.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    verifyBtn.textContent = 'Verifying…';
+    verifyBtn.disabled = true;
+    setTimeout(function () {
+      if (code === '123456') {
+        window.location.href = '/theme/common/auth/two-factor?success=1';
+      } else {
+        errEl.textContent = 'Invalid code. Try 123456 for this demo.';
+        errEl.classList.remove('hidden');
+        verifyBtn.textContent = 'Verify';
+        verifyBtn.disabled = false;
+      }
+    }, 1000);
+  });
+})();
+</script>
+<% } %>

@@ -1,0 +1,164 @@
+<%
+  var verified = locals.verified || false;
+%>
+
+<% if (verified) { %>
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md text-center space-y-5">
+    <span class="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-success-subtle">
+      <i class="fa-solid fa-envelope text-success text-3xl" aria-hidden="true"></i>
+    </span>
+    <div class="space-y-1">
+      <h1 class="text-2xl font-bold text-text-primary">Email verified!</h1>
+      <p class="text-sm text-text-secondary">Your account is now active. Welcome aboard.</p>
+    </div>
+    <a href="/theme/common/auth/login"
+      class="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+      Continue to login <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+    </a>
+  </div>
+</div>
+<% } else { %>
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md space-y-6">
+
+    <div class="rounded-2xl border border-border bg-surface-raised shadow-sm p-8 space-y-6">
+
+      <div class="text-center space-y-1">
+        <span class="flex h-14 w-14 mx-auto items-center justify-center rounded-2xl bg-info-subtle mb-3">
+          <i class="fa-solid fa-envelope w-6 h-6 text-info text-xl" aria-hidden="true"></i>
+        </span>
+        <h1 class="text-2xl font-bold text-text-primary">Check your email</h1>
+        <p class="text-sm text-text-secondary leading-relaxed">
+          We sent a 6-digit code to
+          <span class="font-semibold text-text-primary">john.doe@example.com</span>.
+        </p>
+      </div>
+
+      <div class="space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-text-primary mb-3 text-center">Enter verification code</label>
+          <div class="flex gap-2 justify-center" id="otp-container">
+            <% for (var i = 0; i < 6; i++) { %>
+            <input type="text" inputmode="numeric" maxlength="1" data-idx="<%= i %>"
+              class="otp-input h-12 w-10 rounded-lg border border-border bg-surface-base text-center text-xl font-bold text-text-primary tabular-nums caret-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:border-border-focus"
+              aria-label="Digit <%= i + 1 %>">
+            <% } %>
+          </div>
+          <p class="text-xs text-error text-center mt-2 hidden" id="otp-error"></p>
+        </div>
+
+        <button type="button" id="verify-btn"
+          class="w-full inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus bg-primary text-primary-fg hover:bg-primary-hover px-4 py-2 text-sm">
+          Verify Email
+        </button>
+      </div>
+
+      <div class="text-center text-sm text-text-secondary">
+        <span id="countdown-msg">Resend code in <span class="font-mono font-semibold text-text-primary" id="countdown">60</span>s</span>
+        <button type="button" id="resend-btn" class="text-primary font-medium hover:underline hidden">Resend code</button>
+      </div>
+
+    </div>
+
+    <p class="text-center text-xs text-text-secondary">
+      Wrong email?
+      <a href="/theme/common/auth/register" class="text-primary hover:underline">Go back</a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var inputs   = document.querySelectorAll('.otp-input');
+  var errEl    = document.getElementById('otp-error');
+  var countEl  = document.getElementById('countdown');
+  var countMsg = document.getElementById('countdown-msg');
+  var resendBtn= document.getElementById('resend-btn');
+  var verifyBtn= document.getElementById('verify-btn');
+  var seconds  = 60;
+
+  // Countdown
+  var timer = setInterval(function () {
+    seconds--;
+    countEl.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(timer);
+      countMsg.classList.add('hidden');
+      resendBtn.classList.remove('hidden');
+    }
+  }, 1000);
+
+  // OTP navigation
+  inputs.forEach(function (input, i) {
+    input.addEventListener('input', function () {
+      var val = input.value.replace(/\D/g, '').slice(-1);
+      input.value = val;
+      errEl.classList.add('hidden');
+      if (val && i < inputs.length - 1) inputs[i + 1].focus();
+    });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !input.value && i > 0) inputs[i - 1].focus();
+    });
+  });
+
+  // Paste
+  document.getElementById('otp-container').addEventListener('paste', function (e) {
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+    text.split('').forEach(function (ch, i) { if (inputs[i]) inputs[i].value = ch; });
+    var last = Math.min(text.length, inputs.length - 1);
+    inputs[last].focus();
+  });
+
+  // Verify
+  verifyBtn.addEventListener('click', function () {
+    var code = Array.from(inputs).map(function (inp) { return inp.value; }).join('');
+    if (code.length < 6) {
+      errEl.textContent = 'Please enter the full 6-digit code.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    verifyBtn.textContent = 'Verifying…';
+    verifyBtn.disabled = true;
+    setTimeout(function () {
+      if (code === '123456') {
+        window.location.href = '/theme/common/auth/verify-email?verified=1';
+      } else {
+        errEl.textContent = 'Invalid code. Try 123456 for this demo.';
+        errEl.classList.remove('hidden');
+        verifyBtn.textContent = 'Verify Email';
+        verifyBtn.disabled = false;
+      }
+    }, 1000);
+  });
+
+  // Resend
+  resendBtn.addEventListener('click', function () {
+    resendBtn.textContent = 'Sending…';
+    resendBtn.disabled = true;
+    setTimeout(function () {
+      inputs.forEach(function (inp) { inp.value = ''; });
+      errEl.classList.add('hidden');
+      seconds = 60;
+      countEl.textContent = seconds;
+      resendBtn.classList.add('hidden');
+      countMsg.classList.remove('hidden');
+      inputs[0].focus();
+      resendBtn.textContent = 'Resend code';
+      resendBtn.disabled = false;
+      timer = setInterval(function () {
+        seconds--;
+        countEl.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          countMsg.classList.add('hidden');
+          resendBtn.classList.remove('hidden');
+        }
+      }, 1000);
+    }, 800);
+  });
+})();
+</script>
+<% } %>

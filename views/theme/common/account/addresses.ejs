@@ -1,0 +1,58 @@
+<%
+  var user      = locals.user      || {};
+  var addresses = locals.addresses || [];
+  var mode      = locals.mode      || 'list';   // 'list' | 'add' | 'edit'
+  var editIdx   = locals.editIdx   !== undefined ? parseInt(locals.editIdx) : -1;
+  var flash     = locals.flash     || '';
+%>
+
+<%- include('./_nav', { activePage: 'addresses', user: user }) %>
+
+  <div class="space-y-6">
+
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-text-primary">Address Book</h2>
+      <% if (mode === 'list') { %>
+      <a href="/theme/common/account/addresses?mode=add"
+        class="inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors bg-primary text-primary-fg hover:bg-primary-hover px-3 py-1.5 text-sm">
+        + Add address
+      </a>
+      <% } %>
+    </div>
+
+    <% if (flash) { %>
+    <div class="rounded-lg bg-success-subtle border border-success px-4 py-2.5 text-sm text-success-fg font-medium">
+      <i class="fa-solid fa-check text-xs mr-1" aria-hidden="true"></i> <%= flash %>
+    </div>
+    <% } %>
+
+    <% if (mode === 'list') { %>
+    <%- include('../../../../modules/domain/common/address/AddressSelector', {
+      addresses: addresses.map(function(addr, i) {
+        return Object.assign({}, addr, {
+          editHref:     '/theme/common/account/addresses?mode=edit&idx=' + i,
+          deleteAction: '/theme/common/account/addresses/' + i + '/delete'
+        });
+      }),
+      selectedIndex: 0,
+      addHref: '/theme/common/account/addresses?mode=add'
+    }) %>
+    <% } else { %>
+    <div class="rounded-xl border border-border bg-surface-raised p-6 space-y-4">
+      <h3 class="text-sm font-semibold text-text-primary">
+        <%= mode === 'add' ? 'New address' : 'Edit address' %>
+      </h3>
+      <%- include('../../../../modules/domain/common/address/AddressForm', {
+        action: mode === 'add'
+          ? '/theme/common/account/addresses/new'
+          : '/theme/common/account/addresses/' + editIdx,
+        initial: mode === 'edit' && addresses[editIdx] ? addresses[editIdx] : {},
+        submitLabel: mode === 'add' ? 'Add address' : 'Save changes',
+        cancelHref: '/theme/common/account/addresses'
+      }) %>
+    </div>
+    <% } %>
+
+  </div>
+
+<%- include('./_nav-close') %>

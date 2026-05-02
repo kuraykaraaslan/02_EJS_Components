@@ -1,0 +1,129 @@
+<%
+  var orderTotals = locals.orderTotals || {};
+  var savedCards  = locals.savedCards  || [];
+  var demoPayment = locals.demoPayment || {};
+%>
+
+<div class="mx-auto max-w-5xl px-4 sm:px-6 py-12 space-y-16">
+
+  <!-- Hero -->
+  <div class="space-y-3">
+    <h1 class="text-3xl font-bold text-text-primary">Payment Components</h1>
+    <p class="text-text-secondary max-w-xl">
+      All payment UI pieces from
+      <code class="rounded bg-surface-overlay px-1.5 py-0.5 text-sm font-mono">modules/domains/common/payment</code>
+      and
+      <code class="rounded bg-surface-overlay px-1.5 py-0.5 text-sm font-mono">common/money</code>.
+    </p>
+    <a href="/theme/common/payment/checkout"
+      class="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-fg hover:bg-primary-hover transition-colors">
+      Go to full checkout <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+    </a>
+  </div>
+
+  <!-- CreditCardVisual -->
+  <section class="space-y-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-text-primary">CreditCardVisual</h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <code class="text-xs text-text-secondary font-mono">common/payment/CreditCardVisual</code>
+    </div>
+    <div class="rounded-xl border border-border bg-surface-raised p-6 overflow-x-auto">
+      <div class="flex flex-wrap gap-6">
+        <% ['VISA','MASTERCARD','AMEX','TROY','UNKNOWN'].forEach(function(brand) { %>
+        <%- include('../../../../modules/domain/common/payment/CreditCardVisual', {
+          brand: brand,
+          cardNumber: brand === 'AMEX' ? '378282246310005' : '4111111111111111',
+          cardholderName: 'JOHN DOE',
+          expiryMonth: '08',
+          expiryYear: '27',
+          cvv: '123'
+        }) %>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+
+  <!-- PaymentStatusBadge -->
+  <section class="space-y-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-text-primary">PaymentStatusBadge</h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <code class="text-xs text-text-secondary font-mono">common/payment/PaymentStatusBadge</code>
+    </div>
+    <div class="rounded-xl border border-border bg-surface-raised p-6">
+      <div class="flex flex-wrap gap-3">
+        <% ['PENDING','AUTHORIZED','PAID','FAILED','CANCELLED','REFUNDED'].forEach(function(s) { %>
+        <div class="flex flex-col items-center gap-2">
+          <%- include('../../../../modules/domain/common/payment/PaymentStatusBadge', { status: s }) %>
+          <%- include('../../../../modules/domain/common/payment/PaymentStatusBadge', { status: s, dot: true, size: 'sm' }) %>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+  </section>
+
+  <!-- PriceDisplay -->
+  <section class="space-y-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-text-primary">PriceDisplay</h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <code class="text-xs text-text-secondary font-mono">common/money/PriceDisplay</code>
+    </div>
+    <div class="rounded-xl border border-border bg-surface-raised p-6">
+      <div class="flex flex-wrap items-end gap-6">
+        <%- include('../../../../modules/domain/common/money/PriceDisplay', { amount: 29.99,   currency: 'USD', locale: 'en-US', size: 'sm' }) %>
+        <%- include('../../../../modules/domain/common/money/PriceDisplay', { amount: 1299.90, currency: 'TRY', locale: 'tr-TR', size: 'md' }) %>
+        <%- include('../../../../modules/domain/common/money/PriceDisplay', { amount: 499.00,  currency: 'EUR', locale: 'de-DE', size: 'lg' }) %>
+        <%- include('../../../../modules/domain/common/money/PriceDisplay', { amount: 89.00,   currency: 'GBP', locale: 'en-GB', size: 'xl' }) %>
+        <%- include('../../../../modules/domain/common/money/PriceDisplay', { amount: 150.00,  currency: 'TRY', locale: 'tr-TR', strikethrough: true }) %>
+      </div>
+    </div>
+  </section>
+
+  <!-- OrderTotalsCard -->
+  <section class="space-y-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-text-primary">OrderTotalsCard</h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <code class="text-xs text-text-secondary font-mono">common/money/OrderTotalsCard</code>
+    </div>
+    <div class="rounded-xl border border-border bg-surface-raised p-6">
+      <div class="max-w-sm">
+        <%- include('../../../../modules/domain/common/money/OrderTotalsCard', { totals: orderTotals }) %>
+      </div>
+    </div>
+  </section>
+
+  <!-- PaymentSummaryCard -->
+  <section class="space-y-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-text-primary">PaymentSummaryCard</h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <code class="text-xs text-text-secondary font-mono">common/payment/PaymentSummaryCard</code>
+    </div>
+    <div class="rounded-xl border border-border bg-surface-raised p-6">
+      <div class="max-w-sm">
+        <%- include('../../../../modules/domain/common/payment/PaymentSummaryCard', { payment: demoPayment }) %>
+      </div>
+    </div>
+  </section>
+
+  <!-- SavedCardSelector -->
+  <section class="space-y-4">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold text-text-primary">SavedCardSelector</h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <code class="text-xs text-text-secondary font-mono">common/payment/SavedCardSelector</code>
+    </div>
+    <div class="rounded-xl border border-border bg-surface-raised p-6">
+      <div class="max-w-md">
+        <%- include('../../../../modules/domain/common/payment/SavedCardSelector', {
+          cards: savedCards,
+          selectedCardId: savedCards[0] && savedCards[0].cardId
+        }) %>
+      </div>
+    </div>
+  </section>
+
+</div>

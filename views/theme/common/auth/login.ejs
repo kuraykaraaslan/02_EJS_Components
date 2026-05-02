@@ -1,0 +1,65 @@
+<%
+  var successMsg  = locals.successMsg  || '';
+  var showExpired = locals.showExpired !== false;
+%>
+
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md space-y-6">
+
+    <% if (showExpired) { %>
+    <%- include('../../../../modules/domain/common/auth/SessionExpiredBanner', {
+      loginUrl: '/theme/common/auth/login?noexpired=1'
+    }) %>
+    <% } %>
+
+    <div class="rounded-2xl border border-border bg-surface-raised shadow-sm p-8 space-y-6">
+
+      <!-- Header -->
+      <div class="text-center space-y-1">
+        <div class="flex justify-center mb-3">
+          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-fg text-lg font-bold shadow-sm">C</span>
+        </div>
+        <h1 class="text-2xl font-bold text-text-primary">Welcome back</h1>
+        <p class="text-sm text-text-secondary">Sign in to your account to continue</p>
+      </div>
+
+      <% if (successMsg) { %>
+      <div class="rounded-lg bg-success-subtle border border-success px-4 py-3 text-center space-y-1">
+        <p class="text-sm font-semibold text-success-fg">Success!</p>
+        <p class="text-sm text-success-fg"><%= successMsg %></p>
+      </div>
+      <% } else { %>
+
+      <!-- OAuth -->
+      <%- include('../../../../modules/domain/common/auth/OAuthButtons', {
+        providers: ['google', 'github'],
+        action: '/theme/common/auth/login',
+        method: 'post'
+      }) %>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+        <span class="text-xs text-text-secondary">or continue with email</span>
+        <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      </div>
+
+      <!-- Form -->
+      <%- include('../../../../modules/domain/common/auth/LoginForm', {
+        action: '/theme/common/auth/login',
+        error: locals.error || ''
+      }) %>
+
+      <p class="text-center text-xs text-text-secondary">
+        <a href="/theme/common/auth/forgot-password" class="text-primary hover:underline">Forgot your password?</a>
+      </p>
+
+      <% } %>
+    </div>
+
+    <p class="text-center text-sm text-text-secondary">
+      Don't have an account?
+      <a href="/theme/common/auth/register" class="text-primary font-medium hover:underline">Sign up</a>
+    </p>
+
+  </div>
+</div>

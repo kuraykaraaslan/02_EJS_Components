@@ -1,0 +1,47 @@
+<%
+  var user    = locals.user    || {};
+  var cards   = locals.cards   || [];
+  var adding  = locals.adding  || false;
+  var flash   = locals.flash   || '';
+%>
+
+<%- include('./_nav', { activePage: 'payment-methods', user: user }) %>
+
+  <div class="space-y-6">
+
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold text-text-primary">Payment Methods</h2>
+      <% if (!adding) { %>
+      <a href="/theme/common/account/payment-methods?adding=1"
+        class="inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors bg-primary text-primary-fg hover:bg-primary-hover px-3 py-1.5 text-sm">
+        + Add card
+      </a>
+      <% } %>
+    </div>
+
+    <% if (flash) { %>
+    <div class="rounded-lg bg-success-subtle border border-success px-4 py-2.5 text-sm text-success-fg font-medium">
+      <i class="fa-solid fa-check text-xs mr-1" aria-hidden="true"></i> <%= flash %>
+    </div>
+    <% } %>
+
+    <% if (!adding) { %>
+    <%- include('../../../../modules/domain/common/payment/SavedCardSelector', {
+      cards: cards,
+      selectedCardId: cards[0] && cards[0].cardId,
+      removeAction: '/theme/common/account/payment-methods/{id}/remove',
+      addHref: '/theme/common/account/payment-methods?adding=1'
+    }) %>
+    <% } else { %>
+    <div class="rounded-xl border border-border bg-surface-raised p-6 space-y-4">
+      <h3 class="text-sm font-semibold text-text-primary">Add new card</h3>
+      <%- include('../../../../modules/domain/common/payment/CreditCardForm', {
+        action: '/theme/common/account/payment-methods/new',
+        cancelHref: '/theme/common/account/payment-methods'
+      }) %>
+    </div>
+    <% } %>
+
+  </div>
+
+<%- include('./_nav-close') %>

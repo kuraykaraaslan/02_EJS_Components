@@ -1,0 +1,52 @@
+<%
+  var user        = locals.user        || {};
+  var preferences = locals.preferences || {};
+  var prefSaved   = locals.prefSaved   || false;
+  var pwSaved     = locals.pwSaved     || false;
+  var pwError     = locals.pwError     || false;
+%>
+
+<%- include('./_nav', { activePage: 'settings', user: user }) %>
+
+  <div class="space-y-6">
+    <h2 class="text-lg font-semibold text-text-primary">Settings</h2>
+
+    <!-- Preferences -->
+    <div class="rounded-xl border border-border bg-surface-raised p-6 space-y-4">
+      <h3 class="text-sm font-semibold text-text-primary border-b border-border pb-3">Preferences</h3>
+
+      <% if (prefSaved) { %>
+      <div class="rounded-lg bg-success-subtle border border-success px-4 py-2.5 text-sm text-success-fg font-medium">
+        <i class="fa-solid fa-check text-xs mr-1" aria-hidden="true"></i> Changes saved.
+      </div>
+      <% } %>
+
+      <%- include('../../../../modules/domain/common/user/UserPreferencesForm', {
+        action: '/theme/common/account/settings/preferences',
+        initial: preferences
+      }) %>
+    </div>
+
+    <!-- Change Password -->
+    <div class="rounded-xl border border-border bg-surface-raised p-6 space-y-4">
+      <h3 class="text-sm font-semibold text-text-primary border-b border-border pb-3">Change Password</h3>
+
+      <% if (pwSaved) { %>
+      <div class="rounded-lg bg-success-subtle border border-success px-4 py-2.5 text-sm text-success-fg font-medium">
+        <i class="fa-solid fa-check text-xs mr-1" aria-hidden="true"></i> Changes saved.
+      </div>
+      <% } %>
+      <% if (pwError) { %>
+      <div class="rounded-lg bg-error-subtle border border-error px-4 py-2.5 text-sm text-error font-medium">
+        <i class="fa-solid fa-xmark text-xs mr-1" aria-hidden="true"></i> Something went wrong.
+      </div>
+      <% } %>
+
+      <%- include('../../../../modules/domain/common/auth/ChangePasswordForm', {
+        action: '/theme/common/account/settings/password'
+      }) %>
+    </div>
+
+  </div>
+
+<%- include('./_nav-close') %>
