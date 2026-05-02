@@ -19,8 +19,10 @@
 %>
 <label class="inline-flex items-center cursor-pointer <%= _dis ? 'opacity-50 cursor-not-allowed' : '' %> <%= locals.className || '' %>">
   <div class="relative">
-    <input type="checkbox" id="<%= _id %>" class="sr-only peer" <%= _ch %> <%= _dis %> 
-      <% if(locals.onchange) { %>onchange="<%= locals.onchange %>"<% } %>
+    <input type="checkbox" id="<%= _id %>" class="sr-only peer" <%= _ch %> <%= _dis %>
+      <% if (locals.name)     { %>name="<%= locals.name %>"<% } %>
+      <% if (locals.value)    { %>value="<%= locals.value %>"<% } %>
+      <% if (locals.onchange) { %>onchange="<%= locals.onchange %>"<% } %>
     >
     <div class="bg-surface-active rounded-full peer peer-focus:ring-2 peer-focus:ring-primary/20 peer-checked:bg-primary transition-all <%= wClass %>"></div>
     <div class="absolute left-0.5 top-0.5 bg-white rounded-full transition-all peer-checked:bg-primary-fg <%= dotClass %>"></div>
