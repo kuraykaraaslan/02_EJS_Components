@@ -1,0 +1,123 @@
+<%
+var sections = [
+  {
+    id: 'auth', title: 'Authentication', icon: 'fa-solid fa-key', color: 'bg-blue-50 text-blue-600',
+    emails: [
+      { title: 'Welcome',          description: 'Sent after registration — confirms account and CTA to verify email.',  href: '/theme/common/email/auth/welcome',          icon: 'fa-solid fa-party-horn' },
+      { title: 'Verify Email',     description: '6-digit OTP code for email verification with expiry countdown.',       href: '/theme/common/email/auth/verify-email',     icon: 'fa-solid fa-envelope-circle-check' },
+      { title: 'Password Reset',   description: 'Password reset link with expiry warning and security notice.',         href: '/theme/common/email/auth/password-reset',   icon: 'fa-solid fa-lock-open' },
+      { title: 'Password Changed', description: 'Confirmation that password was changed; includes device and IP.',      href: '/theme/common/email/auth/password-changed', icon: 'fa-solid fa-shield-check' },
+      { title: 'Login Alert',      description: 'New device sign-in alert with location and "not you?" action.',        href: '/theme/common/email/auth/login-alert',      icon: 'fa-solid fa-triangle-exclamation' },
+      { title: 'Account Locked',   description: 'Account temporarily locked after failed attempts, with unlock info.',  href: '/theme/common/email/auth/account-locked',   icon: 'fa-solid fa-lock' },
+    ]
+  },
+  {
+    id: 'order', title: 'Orders', icon: 'fa-solid fa-box', color: 'bg-green-50 text-green-600',
+    emails: [
+      { title: 'Order Confirmation', description: 'Order receipt with line items, totals, and shipping address.',          href: '/theme/common/email/order/confirmation',    icon: 'fa-solid fa-circle-check' },
+      { title: 'Order Shipped',      description: 'Shipping notification with carrier, tracking number, and ETA.',          href: '/theme/common/email/order/shipped',         icon: 'fa-solid fa-truck' },
+      { title: 'Order Delivered',    description: 'Delivery confirmation with review request CTA.',                          href: '/theme/common/email/order/delivered',       icon: 'fa-solid fa-house' },
+      { title: 'Order Cancelled',    description: 'Cancellation notice with reason and refund timeline.',                    href: '/theme/common/email/order/cancelled',       icon: 'fa-solid fa-xmark' },
+      { title: 'Refund Processed',   description: 'Refund confirmation with amount, method, and arrival window.',            href: '/theme/common/email/order/refund',          icon: 'fa-solid fa-rotate-left' },
+      { title: 'Abandoned Cart',     description: 'Re-engagement nudge with cart contents, discount code, and expiry.',      href: '/theme/common/email/order/abandoned-cart',  icon: 'fa-solid fa-cart-shopping' },
+    ]
+  },
+  {
+    id: 'billing', title: 'Billing & Subscriptions', icon: 'fa-solid fa-credit-card', color: 'bg-purple-50 text-purple-600',
+    emails: [
+      { title: 'Invoice',                  description: 'Itemised invoice with line items, tax, status badge, and PDF link.',      href: '/theme/common/email/billing/invoice',                  icon: 'fa-solid fa-file-invoice' },
+      { title: 'Subscription Activated',   description: 'Plan activation confirmation with features list and next billing date.',   href: '/theme/common/email/billing/subscription-activated',   icon: 'fa-solid fa-sparkles' },
+      { title: 'Renewal Reminder',         description: '7-day advance notice of upcoming charge with manage / cancel links.',     href: '/theme/common/email/billing/renewal-reminder',         icon: 'fa-solid fa-bell' },
+      { title: 'Subscription Cancelled',   description: 'Cancellation confirmation with access expiry and reactivate option.',     href: '/theme/common/email/billing/subscription-cancelled',   icon: 'fa-solid fa-circle-minus' },
+      { title: 'Payment Failed',           description: 'Failed charge notice with reason, retry date, and update payment CTA.',   href: '/theme/common/email/billing/payment-failed',           icon: 'fa-solid fa-circle-exclamation' },
+      { title: 'Card Expiring Soon',       description: 'Card expiry warning tied to next billing date with update link.',         href: '/theme/common/email/billing/card-expiring',            icon: 'fa-solid fa-credit-card' },
+    ]
+  },
+  {
+    id: 'notification', title: 'Notifications', icon: 'fa-solid fa-bell', color: 'bg-yellow-50 text-yellow-600',
+    emails: [
+      { title: 'Comment Reply',  description: 'Digest-style notification showing original comment + new reply.',  href: '/theme/common/email/notification/comment-reply', icon: 'fa-solid fa-comment' },
+      { title: 'Mention',        description: 'Alert when another user @mentions you, with context excerpt.',     href: '/theme/common/email/notification/mention',       icon: 'fa-solid fa-at' },
+      { title: 'New Message',    description: 'Inbox message preview with sender info and reply CTA.',            href: '/theme/common/email/notification/new-message',   icon: 'fa-solid fa-envelope' },
+    ]
+  },
+  {
+    id: 'marketing', title: 'Marketing', icon: 'fa-solid fa-bullhorn', color: 'bg-rose-50 text-rose-600',
+    emails: [
+      { title: 'Newsletter',      description: 'Weekly digest with article cards, tags, and read-time estimates.',             href: '/theme/common/email/marketing/newsletter',      icon: 'fa-solid fa-newspaper' },
+      { title: 'Promotional',     description: 'Time-limited offer with discount badge, coupon code, and savings breakdown.',  href: '/theme/common/email/marketing/promotional',     icon: 'fa-solid fa-tag' },
+      { title: 'Product Update',  description: 'Release announcement with version highlights and changelog link.',             href: '/theme/common/email/marketing/product-update',  icon: 'fa-solid fa-rocket' },
+    ]
+  },
+  {
+    id: 'system', title: 'System', icon: 'fa-solid fa-gear', color: 'bg-slate-100 text-slate-600',
+    emails: [
+      { title: 'Scheduled Maintenance', description: 'Advance warning with time window, affected services, and status page.',  href: '/theme/common/email/system/maintenance',        icon: 'fa-solid fa-screwdriver-wrench' },
+      { title: 'Policy Update',         description: 'Summary of privacy/terms changes with bullet points and effective date.', href: '/theme/common/email/system/policy-update',      icon: 'fa-solid fa-file-lines' },
+      { title: 'Data Export Ready',     description: 'Download notification with file size, format, and expiry date.',         href: '/theme/common/email/system/data-export',        icon: 'fa-solid fa-download' },
+      { title: 'Account Deletion',      description: 'Deletion scheduled notice with grace period countdown and cancel CTA.',  href: '/theme/common/email/system/account-deletion',   icon: 'fa-solid fa-trash' },
+    ]
+  },
+  {
+    id: 'support', title: 'Support', icon: 'fa-solid fa-headset', color: 'bg-cyan-50 text-cyan-600',
+    emails: [
+      { title: 'Ticket Opened',   description: 'Auto-reply confirming ticket receipt with ID, subject, and view link.',       href: '/theme/common/email/support/ticket-opened',   icon: 'fa-solid fa-ticket' },
+      { title: 'Agent Reply',     description: 'Support reply with agent name, full message, and reply / view CTAs.',         href: '/theme/common/email/support/ticket-reply',    icon: 'fa-solid fa-reply' },
+      { title: 'Ticket Resolved', description: 'Resolution summary with feedback survey and reopen option.',                  href: '/theme/common/email/support/ticket-resolved', icon: 'fa-solid fa-circle-check' },
+    ]
+  },
+];
+
+var total = sections.reduce(function(s, sec) { return s + sec.emails.length; }, 0);
+%>
+
+<div class="mx-auto max-w-3xl px-4 sm:px-6 py-16 space-y-16">
+
+  <!-- Hero -->
+  <div class="text-center space-y-4">
+    <a href="/theme/common" class="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-primary transition-colors">
+      <i class="fa-solid fa-arrow-left text-[10px]" aria-hidden="true"></i>
+      Common Theme
+    </a>
+    <div class="space-y-1 pt-1">
+      <div class="inline-flex items-center gap-2 rounded-full border border-border bg-surface-raised px-4 py-1.5 text-xs font-medium text-text-secondary">
+        <i class="fa-solid fa-envelope text-primary" aria-hidden="true"></i>
+        Email Previews
+      </div>
+      <h1 class="text-4xl font-bold text-text-primary tracking-tight pt-2">Transactional Emails</h1>
+      <p class="text-lg text-text-secondary max-w-xl mx-auto leading-relaxed">
+        <%= total %> email templates covering every touchpoint in a website's communication lifecycle.
+      </p>
+    </div>
+  </div>
+
+  <!-- Sections -->
+  <% sections.forEach(function(section) { %>
+  <section class="space-y-4" aria-labelledby="<%= section.id %>-heading">
+    <div class="flex items-center gap-3">
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg <%= section.color %> text-sm shrink-0">
+        <i class="<%= section.icon %>" aria-hidden="true"></i>
+      </span>
+      <h2 id="<%= section.id %>-heading" class="text-xl font-semibold text-text-primary"><%= section.title %></h2>
+      <div class="flex-1 h-px bg-border" aria-hidden="true"></div>
+      <span class="text-xs font-medium text-text-secondary bg-surface-overlay rounded-full px-2.5 py-0.5"><%= section.emails.length %></span>
+    </div>
+    <div class="grid gap-2">
+      <% section.emails.forEach(function(email) { %>
+      <a href="<%= email.href %>"
+        class="group flex items-start gap-4 rounded-xl border border-border bg-surface-raised p-4 hover:border-primary hover:shadow-sm transition-all">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-subtle text-primary text-sm">
+          <i class="<%= email.icon %>" aria-hidden="true"></i>
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors"><%= email.title %></p>
+          <p class="text-xs text-text-secondary mt-0.5 leading-relaxed"><%= email.description %></p>
+        </div>
+        <i class="fa-solid fa-arrow-right text-[11px] text-text-secondary group-hover:text-primary transition-colors shrink-0 mt-1" aria-hidden="true"></i>
+      </a>
+      <% }); %>
+    </div>
+  </section>
+  <% }); %>
+
+</div>

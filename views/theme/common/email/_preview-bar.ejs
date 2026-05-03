@@ -1,0 +1,33 @@
+<%
+  var _subject   = locals.subject   || 'Email Preview';
+  var _fromName  = locals.fromName  || 'Acme Corp';
+  var _fromEmail = locals.fromEmail || 'noreply@acme.example.com';
+  var _toName    = locals.toName    || 'John Doe';
+  var _toEmail   = locals.toEmail   || 'john.doe@example.com';
+  var _date      = locals.date      || '';
+%>
+<div class="sticky top-0 z-20 bg-surface-raised border-b border-border">
+  <div class="max-w-[680px] mx-auto px-4 py-3 flex items-start gap-4">
+    <a href="/theme/common/email"
+      class="shrink-0 mt-0.5 flex items-center gap-1.5 text-xs text-text-secondary hover:text-primary transition-colors">
+      <i class="fa-solid fa-arrow-left text-[10px]" aria-hidden="true"></i>
+      Emails
+    </a>
+    <div class="flex-1 min-w-0 space-y-1">
+      <p class="text-sm font-semibold text-text-primary truncate"><%= _subject %></p>
+      <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-text-secondary">
+        <span>
+          <span class="text-text-primary font-medium">From:</span>
+          <%= _fromName %> &lt;<%= _fromEmail %>&gt;
+        </span>
+        <span>
+          <span class="text-text-primary font-medium">To:</span>
+          <%= _toName %> &lt;<%= _toEmail %>&gt;
+        </span>
+        <% if (_date) { %>
+        <span><%= _date %></span>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

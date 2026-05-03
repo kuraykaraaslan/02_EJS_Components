@@ -415,4 +415,236 @@ router.get('/account/orders', (req: Request, res: Response) => {
   });
 });
 
+/* ══════════════════════════════════════════════════════════════
+   Email Previews
+══════════════════════════════════════════════════════════════ */
+
+const COMPANY = {
+  name:         'Acme Corp',
+  domain:       'acme.example.com',
+  address:      '123 Main Street · San Francisco, CA 94102',
+  supportEmail: 'support@acme.example.com',
+};
+
+function emailCtx(title: string, subject: string, extra: object = {}): object {
+  return {
+    layout:    'layouts/blank',
+    title:     title + ' — Email Preview',
+    subject,
+    fromName:  COMPANY.name,
+    fromEmail: 'noreply@' + COMPANY.domain,
+    toName:    demoUser.name,
+    toEmail:   demoUser.email,
+    date:      'May 3, 2026 at 10:23 AM',
+    company:   COMPANY,
+    ...extra,
+  };
+}
+
+const EMAIL_ORDER_ITEMS = [
+  { name: 'Pro Plan — Annual',    variant: 'Billing: Yearly', qty: 1, price: 999.90 },
+  { name: 'Design System Add-on', variant: null,              qty: 2, price: 150.00 },
+];
+const EMAIL_ORDER_TOTALS = { subtotal: 1299.90, discount: 0, tax: 233.98, shipping: 0, total: 1533.88, currency: 'TRY' };
+const EMAIL_SHIPPING     = { fullName: 'John Doe', addressLine1: 'Atatürk Caddesi No:42', city: 'Istanbul', country: 'Turkey', postalCode: '34330' };
+
+router.get('/email', (_req, res) =>
+  res.render('theme/common/email/index', { layout: 'layouts/blank', title: 'Email Previews — Common Theme' }));
+
+/* Auth emails */
+router.get('/email/auth/welcome', (_req, res) =>
+  res.render('theme/common/email/auth/welcome', emailCtx('Welcome Email', 'Welcome to Acme Corp! Confirm your email to get started', {
+    confirmUrl: '#',
+  })));
+
+router.get('/email/auth/verify-email', (_req, res) =>
+  res.render('theme/common/email/auth/verify-email', emailCtx('Verify Email', 'Your Acme Corp verification code', {
+    otp: '847 392',
+    expiresIn: '15 minutes',
+  })));
+
+router.get('/email/auth/password-reset', (_req, res) =>
+  res.render('theme/common/email/auth/password-reset', emailCtx('Password Reset', 'Reset your Acme Corp password', {
+    resetUrl:  '#',
+    expiresIn: '1 hour',
+  })));
+
+router.get('/email/auth/password-changed', (_req, res) =>
+  res.render('theme/common/email/auth/password-changed', emailCtx('Password Changed', 'Your password has been changed', {
+    changedAt:  'May 3, 2026 at 10:23 AM (UTC+3)',
+    ipAddress:  '192.168.1.42',
+    location:   'Istanbul, Turkey',
+    supportUrl: '#',
+  })));
+
+router.get('/email/auth/login-alert', (_req, res) =>
+  res.render('theme/common/email/auth/login-alert', emailCtx('New Login Alert', 'New sign-in to your Acme Corp account', {
+    device:     'Chrome on Windows 11',
+    location:   'Istanbul, Turkey',
+    ipAddress:  '192.168.1.42',
+    loginTime:  'May 3, 2026 at 10:23 AM',
+    secureUrl:  '#',
+  })));
+
+router.get('/email/auth/account-locked', (_req, res) =>
+  res.render('theme/common/email/auth/account-locked', emailCtx('Account Locked', 'Your account has been temporarily locked', {
+    reason:     'Too many failed login attempts',
+    unlockAt:   'May 3, 2026 at 11:23 AM',
+    unlockUrl:  '#',
+    supportUrl: '#',
+  })));
+
+/* Order emails */
+router.get('/email/order/confirmation', (_req, res) =>
+  res.render('theme/common/email/order/confirmation', emailCtx('Order Confirmation', 'Order confirmed — #ORD-20260503-001', {
+    order: { id: 'ORD-20260503-001', date: 'May 3, 2026', items: EMAIL_ORDER_ITEMS, totals: EMAIL_ORDER_TOTALS, shipping: EMAIL_SHIPPING, viewUrl: '#' },
+  })));
+
+router.get('/email/order/shipped', (_req, res) =>
+  res.render('theme/common/email/order/shipped', emailCtx('Order Shipped', 'Your order #ORD-20260503-001 has shipped!', {
+    order: { id: 'ORD-20260503-001', carrier: 'FedEx', trackingNumber: 'FX123456789TR', trackingUrl: '#', estimatedDelivery: 'May 6–7, 2026', items: EMAIL_ORDER_ITEMS },
+  })));
+
+router.get('/email/order/delivered', (_req, res) =>
+  res.render('theme/common/email/order/delivered', emailCtx('Order Delivered', 'Your order has been delivered!', {
+    order: { id: 'ORD-20260503-001', deliveredAt: 'May 6, 2026 at 2:34 PM', items: EMAIL_ORDER_ITEMS, reviewUrl: '#', viewUrl: '#' },
+  })));
+
+router.get('/email/order/cancelled', (_req, res) =>
+  res.render('theme/common/email/order/cancelled', emailCtx('Order Cancelled', 'Your order #ORD-20260503-001 has been cancelled', {
+    order: { id: 'ORD-20260503-001', reason: 'Requested by customer', items: EMAIL_ORDER_ITEMS, refundAmount: 1533.88, refundDays: '3–5 business days', currency: 'TRY', shopUrl: '#' },
+  })));
+
+router.get('/email/order/refund', (_req, res) =>
+  res.render('theme/common/email/order/refund', emailCtx('Refund Processed', 'Your refund of ₺299.90 has been processed', {
+    refund: { id: 'REF-20260503-001', orderId: 'ORD-20260430-005', amount: 299.90, currency: 'TRY', method: 'Visa ••••4242', processedAt: 'May 3, 2026', arrivalDays: '3–5 business days', viewUrl: '#' },
+  })));
+
+router.get('/email/order/abandoned-cart', (_req, res) =>
+  res.render('theme/common/email/order/abandoned-cart', emailCtx('Abandoned Cart', 'You left something behind…', {
+    cart: { items: EMAIL_ORDER_ITEMS, total: 1299.90, currency: 'TRY', couponCode: 'COMEBACK10', couponPct: 10, expiresAt: 'May 5, 2026', resumeUrl: '#' },
+  })));
+
+/* Billing emails */
+router.get('/email/billing/invoice', (_req, res) =>
+  res.render('theme/common/email/billing/invoice', emailCtx('Invoice', 'Invoice #INV-2026-0042 from Acme Corp', {
+    invoice: { id: 'INV-2026-0042', date: 'May 3, 2026', dueDate: 'May 17, 2026', status: 'PAID', items: EMAIL_ORDER_ITEMS, totals: EMAIL_ORDER_TOTALS, downloadUrl: '#' },
+  })));
+
+router.get('/email/billing/subscription-activated', (_req, res) =>
+  res.render('theme/common/email/billing/subscription-activated', emailCtx('Subscription Activated', 'Your Pro subscription is now active!', {
+    plan: { name: 'Pro Plan', price: 999.90, currency: 'TRY', interval: 'year', nextBillingDate: 'May 3, 2027', features: ['Unlimited projects', 'Priority support', 'Advanced analytics', 'Team collaboration', 'Custom integrations'], manageUrl: '#' },
+  })));
+
+router.get('/email/billing/renewal-reminder', (_req, res) =>
+  res.render('theme/common/email/billing/renewal-reminder', emailCtx('Renewal Reminder', 'Your Pro Plan renews in 7 days', {
+    plan: { name: 'Pro Plan', renewalDate: 'May 10, 2026', amount: 999.90, currency: 'TRY', paymentMethod: 'Visa ••••4242', manageUrl: '#', cancelUrl: '#' },
+  })));
+
+router.get('/email/billing/subscription-cancelled', (_req, res) =>
+  res.render('theme/common/email/billing/subscription-cancelled', emailCtx('Subscription Cancelled', 'Your Pro Plan subscription has been cancelled', {
+    plan: { name: 'Pro Plan', cancelledAt: 'May 3, 2026', accessUntil: 'May 10, 2026', reactivateUrl: '#', feedbackUrl: '#' },
+  })));
+
+router.get('/email/billing/payment-failed', (_req, res) =>
+  res.render('theme/common/email/billing/payment-failed', emailCtx('Payment Failed', "We couldn't process your payment", {
+    payment: { amount: 999.90, currency: 'TRY', attemptedAt: 'May 3, 2026 at 10:23 AM', failReason: 'Insufficient funds', retryDate: 'May 10, 2026', updateUrl: '#' },
+  })));
+
+router.get('/email/billing/card-expiring', (_req, res) =>
+  res.render('theme/common/email/billing/card-expiring', emailCtx('Card Expiring Soon', 'Your Visa ••••4242 expires next month', {
+    card: { last4: '4242', brand: 'Visa', expiryMonth: '06', expiryYear: '26', updateUrl: '#' },
+    plan: { name: 'Pro Plan', nextBillingDate: 'May 10, 2026' },
+  })));
+
+/* Notification emails */
+router.get('/email/notification/comment-reply', (_req, res) =>
+  res.render('theme/common/email/notification/comment-reply', emailCtx('Comment Reply', 'Sarah replied to your comment', {
+    notification: { senderName: 'Sarah Chen', postTitle: 'Getting Started with Design Systems', postUrl: '#', yourComment: 'Great article! The atomic design section was particularly helpful for our team.', replyText: 'Thanks John! The atomic approach really does scale well. Let me know if you need help adapting it for your stack.', viewUrl: '#' },
+  })));
+
+router.get('/email/notification/mention', (_req, res) =>
+  res.render('theme/common/email/notification/mention', emailCtx('You Were Mentioned', 'Alex mentioned you in a comment', {
+    notification: { mentionerName: 'Alex Rivera', context: 'mentioned you in a comment on "Building Scalable APIs"', excerpt: '…I think @johndoe had a great solution to this problem in their last post. You should check out their approach to error boundaries.', viewUrl: '#' },
+  })));
+
+router.get('/email/notification/new-message', (_req, res) =>
+  res.render('theme/common/email/notification/new-message', emailCtx('New Message', 'You have a new message from Maria Santos', {
+    notification: { senderName: 'Maria Santos', messageCount: 1, preview: "Hi John! I wanted to follow up on our conversation about the design system integration. I've put together some notes…", sentAt: 'May 3, 2026 at 9:45 AM', replyUrl: '#' },
+  })));
+
+/* Marketing emails */
+router.get('/email/marketing/newsletter', (_req, res) =>
+  res.render('theme/common/email/marketing/newsletter', emailCtx('Newsletter', 'Acme Weekly — Issue #42', {
+    newsletter: {
+      issue: 42,
+      date:  'May 3, 2026',
+      intro: "Here's what's happening in the world of design systems and developer tools this week.",
+      articles: [
+        { tag: 'Design',    title: 'The Future of Adaptive Interfaces',    summary: 'How AI-driven design is reshaping how we build and ship UI components at scale.',              url: '#', readTime: '5 min' },
+        { tag: 'Dev Tools', title: 'Tailwind CSS v4 Deep Dive',            summary: 'A comprehensive look at the new CSS-first config, OKLCH colors, and performance improvements.', url: '#', readTime: '8 min' },
+        { tag: 'Community', title: 'Spotlight: Open Source Design Systems', summary: 'We talked to the maintainers of 5 popular open-source design systems about their journey.',  url: '#', readTime: '6 min' },
+      ],
+      ctaUrl: '#',
+    },
+  })));
+
+router.get('/email/marketing/promotional', (_req, res) =>
+  res.render('theme/common/email/marketing/promotional', emailCtx('Special Offer', '50% off Pro Plan — This weekend only', {
+    promo: { headline: '50% Off Pro Plan', subheadline: 'This weekend only — upgrade and save', discountPct: 50, code: 'WEEKEND50', validUntil: 'May 5, 2026 at 11:59 PM', originalPrice: 999.90, discountedPrice: 499.95, currency: 'TRY', shopUrl: '#', features: ['Everything in Free', 'Unlimited projects', 'Priority support', 'Advanced analytics'] },
+  })));
+
+router.get('/email/marketing/product-update', (_req, res) =>
+  res.render('theme/common/email/marketing/product-update', emailCtx('Product Update', "What's new in Acme Corp v2.4", {
+    update: {
+      version: '2.4',
+      date:    'May 3, 2026',
+      intro:   "After months of work, we're excited to announce Acme Corp v2.4 — our biggest release yet.",
+      highlights: [
+        { icon: 'fa-solid fa-bolt',        title: '3× Faster Performance', description: 'Complete rewrite of the rendering engine. Everything loads significantly faster.' },
+        { icon: 'fa-solid fa-paint-brush', title: 'New Design System',    description: 'Fresh component library with 200+ components and a refined dark mode.' },
+        { icon: 'fa-solid fa-plug',        title: 'New Integrations',     description: 'Native connectors for Figma, GitHub, Slack, and 12 more tools.' },
+      ],
+      changelogUrl:  '#',
+      learnMoreUrl:  '#',
+    },
+  })));
+
+/* System emails */
+router.get('/email/system/maintenance', (_req, res) =>
+  res.render('theme/common/email/system/maintenance', emailCtx('Scheduled Maintenance', 'Scheduled maintenance on May 10 — 2–6 AM UTC', {
+    maintenance: { startTime: 'May 10, 2026 at 2:00 AM UTC', endTime: 'May 10, 2026 at 6:00 AM UTC', duration: '~4 hours', reason: 'Infrastructure upgrade and database migration', affected: ['Web application', 'API access', 'File uploads'], statusUrl: '#' },
+  })));
+
+router.get('/email/system/policy-update', (_req, res) =>
+  res.render('theme/common/email/system/policy-update', emailCtx('Policy Update', 'Important updates to our Privacy Policy', {
+    update: { type: 'Privacy Policy', effectiveDate: 'June 1, 2026', summaryPoints: ['More granular control over your data sharing preferences.', 'Clarified how we handle third-party analytics and advertising data.', 'Added your right to data portability and how to request an export.', 'Updated retention periods for inactive account data.'], viewUrl: '#' },
+  })));
+
+router.get('/email/system/data-export', (_req, res) =>
+  res.render('theme/common/email/system/data-export', emailCtx('Data Export Ready', 'Your data export is ready to download', {
+    export: { requestedAt: 'May 3, 2026 at 9:00 AM', readyAt: 'May 3, 2026 at 9:07 AM', fileSize: '2.4 MB', format: 'ZIP (JSON + CSV)', downloadUrl: '#', expiresAt: 'May 10, 2026' },
+  })));
+
+router.get('/email/system/account-deletion', (_req, res) =>
+  res.render('theme/common/email/system/account-deletion', emailCtx('Account Deletion Scheduled', 'Your account is scheduled for deletion on May 10', {
+    deletion: { requestedAt: 'May 3, 2026 at 10:00 AM', scheduledAt: 'May 10, 2026', gracePeriodDays: 7, cancelUrl: '#', supportUrl: '#' },
+  })));
+
+/* Support emails */
+router.get('/email/support/ticket-opened', (_req, res) =>
+  res.render('theme/common/email/support/ticket-opened', emailCtx('Support Ticket Opened', '[Ticket #SUP-4821] Your request has been received', {
+    ticket: { id: 'SUP-4821', subject: 'Unable to export data to CSV format', description: "Hi, I'm trying to export my project data to CSV but the download button shows a spinner for a few seconds and then nothing happens. I've tried on Chrome and Firefox. My account is on the Pro plan.", submittedAt: 'May 3, 2026 at 10:23 AM', viewUrl: '#' },
+  })));
+
+router.get('/email/support/ticket-reply', (_req, res) =>
+  res.render('theme/common/email/support/ticket-reply', emailCtx('Support Reply', '[Ticket #SUP-4821] New reply from the support team', {
+    ticket: { id: 'SUP-4821', subject: 'Unable to export data to CSV format', agentName: 'Emma', agentRole: 'Acme Support', replyText: "Hi John, thank you for reaching out! I've investigated the issue and found that CSV exports for large datasets (>10k rows) were timing out due to a server-side issue. I've applied a fix to your account and increased your export timeout limit.\n\nCould you try the export again and let me know if it works?", repliedAt: 'May 3, 2026 at 2:15 PM', viewUrl: '#', replyUrl: '#' },
+  })));
+
+router.get('/email/support/ticket-resolved', (_req, res) =>
+  res.render('theme/common/email/support/ticket-resolved', emailCtx('Ticket Resolved', '[Ticket #SUP-4821] Your ticket has been resolved', {
+    ticket: { id: 'SUP-4821', subject: 'Unable to export data to CSV format', resolvedAt: 'May 3, 2026 at 3:30 PM', resolution: 'Applied server-side fix for large CSV exports and increased timeout limit for Pro plan accounts.', feedbackUrl: '#', reopenUrl: '#', viewUrl: '#' },
+  })));
+
 export default router;

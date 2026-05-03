@@ -10,6 +10,7 @@ import { buildDomainCommonStatusData } from './domain-common-status.showcase';
 import { buildDomainCommonDiscountData } from './domain-common-discount.showcase';
 import { buildDomainCommonSeoData } from './domain-common-seo.showcase';
 import { buildDomainCommonLocationData } from './domain-common-location.showcase';
+import { buildDomainCommonEmailData } from './domain-common-email.showcase';
 
 const languageSwitcherSource = fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/i18n/LanguageSwitcher.ejs'), 'utf-8');
 const directionProviderSource= fs.readFileSync(path.join(process.cwd(), 'modules/domain/common/i18n/DirectionProvider.ejs'), 'utf-8');
@@ -192,6 +193,7 @@ export function buildDomainCommonData(): ShowcaseItem[] {
     languageSwitcherItem,
     directionProviderItem,
     notFoundPageItem,
+    ...buildDomainCommonEmailData(),
   ]) {
     allItems[item.id] = item;
   }
@@ -235,6 +237,38 @@ export function buildDomainCommonData(): ShowcaseItem[] {
     'credit-card-form',
     'saved-card-selector',
     'not-found-page',
+    // Emails
+    'email-welcome',
+    'email-verify-otp',
+    'email-password-reset',
+    'email-password-changed',
+    'email-login-alert',
+    'email-account-locked',
+    'email-order-confirmation',
+    'email-order-shipped',
+    'email-order-delivered',
+    'email-order-cancelled',
+    'email-refund',
+    'email-abandoned-cart',
+    'email-invoice',
+    'email-subscription-activated',
+    'email-renewal-reminder',
+    'email-subscription-cancelled',
+    'email-payment-failed',
+    'email-card-expiring',
+    'email-comment-reply',
+    'email-mention',
+    'email-new-message',
+    'email-newsletter',
+    'email-promotional',
+    'email-product-update',
+    'email-maintenance',
+    'email-policy-update',
+    'email-data-export',
+    'email-account-deletion',
+    'email-ticket-opened',
+    'email-ticket-reply',
+    'email-ticket-resolved',
   ];
 
   return ORDER.map((id) => {

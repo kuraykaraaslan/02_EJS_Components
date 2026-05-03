@@ -31,6 +31,12 @@
       ]
     },
     {
+      id: 'email', title: 'Email Templates', tag: 'common/email',
+      pages: [
+        { title: 'Email Gallery',     description: '31 transactional email templates — auth, orders, billing, notifications, marketing, system, and support.', href: '/theme/common/email', icon: 'fa-solid fa-envelope' },
+      ]
+    },
+    {
       id: 'account', title: 'Account', tag: 'common/user · common/address',
       pages: [
         { title: 'Profile',         description: 'View and edit display name, username, bio, avatar URL.',              href: '/theme/common/account/profile',        icon: 'fa-solid fa-id-card' },
@@ -99,6 +105,14 @@
         'UserProfileCard','UserProfileForm','UserPreferencesForm',
         'UserAvatar','UserMenu','UserRoleBadge','UserStatusBadge',
         'LanguageSwitcher','CurrencySelector','NotFoundPage',
+        'EmailPreviewBar','EmailFooter',
+        'WelcomeEmail','VerifyEmailOTP','PasswordResetEmail','PasswordChangedEmail','LoginAlertEmail','AccountLockedEmail',
+        'OrderConfirmationEmail','OrderShippedEmail','OrderDeliveredEmail','OrderCancelledEmail','RefundEmail','AbandonedCartEmail',
+        'InvoiceEmail','SubscriptionActivatedEmail','RenewalReminderEmail','SubscriptionCancelledEmail','PaymentFailedEmail','CardExpiringEmail',
+        'CommentReplyEmail','MentionEmail','NewMessageEmail',
+        'NewsletterEmail','PromotionalEmail','ProductUpdateEmail',
+        'MaintenanceEmail','PolicyUpdateEmail','DataExportEmail','AccountDeletionEmail',
+        'TicketOpenedEmail','TicketReplyEmail','TicketResolvedEmail',
       ].forEach(function(name) { %>
       <span class="rounded-md bg-surface-overlay px-2.5 py-1 text-xs font-mono text-text-secondary"><%= name %></span>
       <% }); %>
