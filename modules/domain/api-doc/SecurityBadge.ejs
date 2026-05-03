@@ -1,0 +1,20 @@
+<%
+  var _type      = locals.type || 'apiKey';
+  var _name      = locals.name || null;
+  var _className = locals.className || '';
+
+  var schemeConfig = {
+    apiKey:        { label: 'API Key',        icon: 'fa-solid fa-key',         style: 'bg-warning-subtle text-warning-fg border-warning/30' },
+    http:          { label: 'HTTP',           icon: 'fa-solid fa-lock',        style: 'bg-info-subtle text-info-fg border-info/30' },
+    oauth2:        { label: 'OAuth 2.0',      icon: 'fa-solid fa-shield',      style: 'bg-primary-subtle text-primary border-primary/30' },
+    openIdConnect: { label: 'OpenID Connect', icon: 'fa-solid fa-fingerprint', style: 'bg-success-subtle text-success-fg border-success/30' },
+    mutualTLS:     { label: 'Mutual TLS',     icon: 'fa-solid fa-id-card',     style: 'bg-surface-sunken text-text-secondary border-border' },
+  };
+
+  var config      = schemeConfig[_type] || schemeConfig['apiKey'];
+  var displayName = _name || config.label;
+%>
+<span class="inline-flex items-center gap-1.5 rounded border text-xs font-medium px-2 py-0.5 <%= config.style %><%= _className ? ' ' + _className : '' %>">
+  <i class="<%= config.icon %> text-[11px]" aria-hidden="true"></i>
+  <span><%= displayName %></span>
+</span>
