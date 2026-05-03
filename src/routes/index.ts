@@ -5,7 +5,18 @@ import { SHOWCASE_DATA_MAP } from '../data/showcase.data';
 const router = Router();
 
 router.get('/', (_req, res) => {
-  res.redirect('/button');
+  const navGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.map((item) => ({ ...item, active: false })),
+  }));
+
+  res.render('showcase/index', {
+    layout: false,
+    title: 'KUIejs — Composable UI System for Real Products',
+    navGroups,
+    selectedId: null,
+    selected: null,
+  });
 });
 
 router.get('/:slug', (req, res) => {

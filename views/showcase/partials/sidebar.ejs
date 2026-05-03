@@ -29,6 +29,20 @@
   <!-- Nav -->
   <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-1" aria-label="Component navigation">
 
+    <!-- Home link -->
+    <% var isHome = selectedId === null; %>
+    <a
+      href="/"
+      aria-current="<%= isHome ? 'page' : 'false' %>"
+      title="Home"
+      class="sidebar-item flex items-center gap-2.5 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus px-3 py-2 mb-2 <%= isHome ? 'bg-primary-subtle text-primary font-medium' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
+    >
+      <span class="sidebar-item-icon flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold shrink-0 <%= isHome ? 'bg-primary text-primary-fg' : 'bg-surface-sunken text-text-secondary' %>">
+        <i class="fa-solid fa-house text-[10px]" aria-hidden="true"></i>
+      </span>
+      <span class="sidebar-full-only flex-1 truncate text-sm">Home</span>
+    </a>
+
     <% if (navGroups.length === 0) { %>
       <div class="sidebar-full-only px-3 py-6 text-center">
         <p class="text-xs text-text-disabled">No items yet.</p>
@@ -132,6 +146,20 @@
     </div>
 
     <nav class="flex-1 overflow-y-auto px-2 py-3 space-y-4" aria-label="Component navigation (mobile)">
+
+      <!-- Home link -->
+      <a
+        href="/"
+        aria-current="<%= isHome ? 'page' : 'false' %>"
+        onclick="closeMobileSidebar()"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus mb-1 <%= isHome ? 'bg-primary-subtle text-primary font-medium' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
+      >
+        <span class="flex items-center justify-center w-6 h-6 rounded-md text-xs font-bold shrink-0 <%= isHome ? 'bg-primary text-primary-fg' : 'bg-surface-sunken text-text-secondary' %>">
+          <i class="fa-solid fa-house text-[10px]" aria-hidden="true"></i>
+        </span>
+        <span class="flex-1 truncate">Home</span>
+      </a>
+
       <% if (navGroups.length === 0) { %>
         <div class="px-3 py-6 text-center">
           <p class="text-xs text-text-disabled">No items yet</p>
