@@ -1,0 +1,25 @@
+<%
+  var _rule    = locals.rule    || {};
+  var _enabled = _rule.enabled !== false;
+
+  function portStr(p) {
+    if (p === null || p === undefined) return '—';
+    if (typeof p === 'object' && p.start !== undefined) return p.start + '–' + p.end;
+    return String(p);
+  }
+%>
+<tr class="border-t border-border hover:bg-surface-raised transition-colors<%= !_enabled ? ' opacity-50' : '' %>">
+  <td class="py-3 px-4">
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-medium text-text-primary"><%= _rule.name %></span>
+      <% if (!_enabled) { %>
+      <span class="text-xs text-text-secondary bg-surface-overlay border border-border rounded px-1.5 py-0.5">Off</span>
+      <% } %>
+    </div>
+  </td>
+  <td class="py-3 px-4 hidden sm:table-cell text-xs font-mono text-text-secondary"><%= _rule.protocol %></td>
+  <td class="py-3 px-4 text-sm font-mono text-text-primary tabular-nums"><%= portStr(_rule.externalPort) %></td>
+  <td class="py-3 px-4 hidden md:table-cell text-xs font-mono text-text-secondary">
+    <span class="text-text-primary"><%= _rule.internalIp %></span>:<%= portStr(_rule.internalPort) %>
+  </td>
+</tr>

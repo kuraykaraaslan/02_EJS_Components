@@ -1,0 +1,105 @@
+<%
+  var state    = locals.state   || {};
+  var wifi     = state.wifi     || {};
+  var radios   = wifi.radios    || [];
+  var networks = wifi.networks  || [];
+  var wps      = wifi.wps       || {};
+  var roaming  = wifi.roaming   || {};
+%>
+
+<%- include('./_nav', { activePage: 'wifi', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- Radio settings -->
+    <section class="space-y-3" aria-labelledby="radios-heading">
+      <h2 id="radios-heading" class="text-sm font-semibold text-text-primary">Radio Settings</h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <% radios.forEach(function(radio) { %>
+        <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+                <i class="fa-solid fa-wifi text-sm" aria-hidden="true"></i>
+              </span>
+              <div>
+                <p class="text-sm font-semibold text-text-primary"><%= radio.band %></p>
+                <p class="text-xs text-text-secondary"><%= radio.standard %></p>
+              </div>
+            </div>
+            <span class="inline-flex items-center gap-1.5 rounded-full border text-xs px-2.5 py-1 font-medium
+              <%= radio.enabled ? 'bg-success/10 border-success/30 text-success' : 'bg-surface-overlay border-border text-text-secondary' %>">
+              <span class="h-1.5 w-1.5 rounded-full flex-shrink-0 <%= radio.enabled ? 'bg-success' : 'bg-text-secondary' %>"></span>
+              <%= radio.enabled ? 'On' : 'Off' %>
+            </span>
+          </div>
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+            <% [
+              { label: 'Channel',     value: String(radio.channel)       },
+              { label: 'Width',       value: radio.channelWidth          },
+              { label: 'TX Power',    value: radio.txPowerPercent + '%'  },
+              { label: 'OFDMA',       value: radio.ofdma      ? 'Yes' : 'No' },
+              { label: 'MU-MIMO',     value: radio.mu_mimo    ? 'Yes' : 'No' },
+              { label: 'Beamforming', value: radio.beamforming ? 'Yes' : 'No' },
+            ].forEach(function(f) { %>
+            <div>
+              <dt class="text-text-secondary"><%= f.label %></dt>
+              <dd class="font-medium text-text-primary mt-0.5"><%= f.value %></dd>
+            </div>
+            <% }); %>
+          </dl>
+        </div>
+        <% }); %>
+      </div>
+    </section>
+
+    <!-- Networks -->
+    <section class="space-y-3" aria-labelledby="networks-heading">
+      <h2 id="networks-heading" class="text-sm font-semibold text-text-primary">Networks (<%= networks.length %>)</h2>
+      <div class="space-y-2">
+        <% networks.forEach(function(net) { %>
+        <%- include('../../../modules/domain/modem/WifiNetworkCard', { network: net }) %>
+        <% }); %>
+      </div>
+    </section>
+
+    <!-- WPS + Roaming -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-3" aria-labelledby="wps-heading">
+        <div class="flex items-center justify-between">
+          <h2 id="wps-heading" class="text-sm font-semibold text-text-primary">WPS</h2>
+          <span class="text-xs font-medium <%= wps.enabled ? 'text-success' : 'text-text-secondary' %>">
+            <%= wps.enabled ? 'Enabled' : 'Disabled' %>
+          </span>
+        </div>
+        <p class="text-xs text-text-secondary">
+          PIN: <span class="font-mono text-text-primary"><%= wps.pin %></span>
+        </p>
+      </section>
+
+      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-3" aria-labelledby="roaming-heading">
+        <div class="flex items-center justify-between">
+          <h2 id="roaming-heading" class="text-sm font-semibold text-text-primary">Roaming</h2>
+          <span class="text-xs font-medium <%= roaming.enabled ? 'text-success' : 'text-text-secondary' %>">
+            <%= roaming.enabled ? 'Enabled' : 'Disabled' %>
+          </span>
+        </div>
+        <dl class="grid grid-cols-3 gap-2 text-xs">
+          <% [
+            ['802.11r', roaming.threshold80211r],
+            ['802.11k', roaming.threshold80211k],
+            ['802.11v', roaming.threshold80211v],
+          ].forEach(function(r) { %>
+          <div>
+            <dt class="text-text-secondary"><%= r[0] %></dt>
+            <dd class="font-medium mt-0.5 <%= r[1] ? 'text-success' : 'text-text-secondary' %>"><%= r[1] ? 'On' : 'Off' %></dd>
+          </div>
+          <% }); %>
+        </dl>
+        <p class="text-xs text-text-secondary">RSSI threshold: <span class="text-text-primary font-medium"><%= roaming.rssiThreshold %> dBm</span></p>
+      </section>
+    </div>
+
+  </div>
+
+<%- include('./_nav-close') %>

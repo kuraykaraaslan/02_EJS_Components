@@ -22,7 +22,7 @@ router.get('/:slug', (req, res) => {
 
   res.render('showcase/index', {
     layout: false,
-    title: selected ? `${selected.title} — EJS Components` : 'EJS Components',
+    title: selected ? `${selected.title} | KUIejs` : 'KUIejs — Composable UI System for Real Products',
     navGroups,
     selectedId,
     selected,

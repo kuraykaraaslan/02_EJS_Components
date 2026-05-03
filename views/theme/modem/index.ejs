@@ -1,0 +1,124 @@
+<%
+  var state   = locals.state   || {};
+  var system  = state.system   || {};
+  var wan     = state.wan      || {};
+  var wifi    = state.wifi     || {};
+  var devices = state.connectedDevices || [];
+  var alerts  = state.alerts   || [];
+  var traffic = state.traffic  || {};
+
+  var wiredCount   = devices.filter(function(d){ return d.connectionType === 'WIRED'; }).length;
+  var wifiCount    = devices.filter(function(d){ return d.connectionType !== 'WIRED'; }).length;
+  var unread       = alerts.filter(function(a){ return !a.read; });
+
+  var wanIface = (traffic.interfaces || []).find(function(i){ return i.interface === 'WAN'; }) || {};
+
+  function fmtBytes(b) {
+    if (b >= 1073741824) return (b / 1073741824).toFixed(1) + ' GB';
+    if (b >= 1048576)    return (b / 1048576).toFixed(0)    + ' MB';
+    return (b / 1024).toFixed(0) + ' KB';
+  }
+%>
+
+<%- include('./_nav', { activePage: 'dashboard', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
+        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">WAN IP</p>
+        <p class="text-lg font-bold font-mono text-text-primary leading-tight truncate"><%= wan.ipAddress || '—' %></p>
+        <div class="flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 rounded-full flex-shrink-0
+            <%= wan.status === 'CONNECTED' ? 'bg-success' : wan.status === 'CONNECTING' ? 'bg-warning animate-pulse' : 'bg-error' %>"
+            aria-hidden="true"></span>
+          <span class="text-xs text-text-secondary"><%= wan.connectionType %></span>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
+        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">Devices</p>
+        <p class="text-3xl font-bold text-text-primary"><%= devices.length %></p>
+        <p class="text-xs text-text-secondary"><%= wiredCount %> wired · <%= wifiCount %> wireless</p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
+        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">WAN Download</p>
+        <p class="text-2xl font-bold text-text-primary"><%= fmtBytes(wanIface.downloadBytes || 0) %></p>
+        <p class="text-xs text-text-secondary">
+          <i class="fa-solid fa-arrow-up text-info" aria-hidden="true"></i>
+          <%= fmtBytes(wanIface.uploadBytes || 0) %> up
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
+        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">Alerts</p>
+        <p class="text-3xl font-bold <%= unread.length > 0 ? 'text-error' : 'text-text-primary' %>"><%= unread.length %></p>
+        <p class="text-xs text-text-secondary">unread</p>
+      </div>
+    </div>
+
+    <!-- System + WAN -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <%- include('../../../modules/domain/modem/SystemStatusCard', {
+        hostname:  system.hostname,
+        model:     system.model,
+        firmware:  system.firmware,
+        resources: system.resources,
+        time:      system.time,
+      }) %>
+      <%- include('../../../modules/domain/modem/WanStatusCard', { wan: wan }) %>
+    </div>
+
+    <!-- Wi-Fi networks -->
+    <section class="space-y-3" aria-labelledby="wifi-heading">
+      <h2 id="wifi-heading" class="text-sm font-semibold text-text-primary">Wi-Fi Networks</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <% (wifi.networks || []).forEach(function(net) { %>
+        <%- include('../../../modules/domain/modem/WifiNetworkCard', { network: net, editHref: '/theme/modem/wifi' }) %>
+        <% }); %>
+      </div>
+    </section>
+
+    <!-- Unread alerts -->
+    <% if (unread.length > 0) { %>
+    <section class="space-y-3" aria-labelledby="alerts-heading">
+      <h2 id="alerts-heading" class="text-sm font-semibold text-text-primary">Active Alerts</h2>
+      <div class="space-y-2">
+        <% unread.forEach(function(alert) { %>
+        <%- include('../../../modules/domain/modem/AlertItem', { alert: alert }) %>
+        <% }); %>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Connected devices preview -->
+    <section class="space-y-3" aria-labelledby="devices-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="devices-heading" class="text-sm font-semibold text-text-primary">Connected Devices</h2>
+        <a href="/theme/modem/devices" class="text-xs text-primary hover:underline">View all</a>
+      </div>
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Device</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">IP</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Connection</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden lg:table-cell">Traffic</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% devices.slice(0, 5).forEach(function(dev) { %>
+            <%- include('../../../modules/domain/modem/ConnectedDeviceRow', { device: dev }) %>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+<%- include('./_nav-close') %>

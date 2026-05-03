@@ -1,0 +1,157 @@
+<%
+  var state     = locals.state     || {};
+  var system    = state.system     || {};
+  var logs      = state.logs       || [];
+  var led       = state.led        || {};
+  var notifCfg  = state.notifications || {};
+  var logFilter = locals.logFilter || 'ALL';
+
+  var filteredLogs = logFilter === 'ALL'
+    ? logs
+    : logs.filter(function(l) { return l.source === logFilter || l.level === logFilter; });
+
+  var levelColor = {
+    DEBUG:    'text-text-secondary',
+    INFO:     'text-info',
+    WARNING:  'text-warning',
+    ERROR:    'text-error',
+    CRITICAL: 'text-error',
+  };
+
+  function fmtTime(iso) {
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) + ' ' +
+             d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch(e) { return iso; }
+  }
+%>
+
+<%- include('./_nav', { activePage: 'system', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- System status card -->
+    <%- include('../../../modules/domain/modem/SystemStatusCard', {
+      hostname:  system.hostname,
+      model:     system.model,
+      firmware:  system.firmware,
+      resources: system.resources,
+      time:      system.time,
+    }) %>
+
+    <!-- Firmware update banner -->
+    <% if (system.firmware && system.firmware.updateAvailable) { %>
+    <div class="flex items-center gap-4 rounded-xl border border-warning/30 bg-warning/5 p-4">
+      <i class="fa-solid fa-circle-arrow-up text-warning text-xl shrink-0" aria-hidden="true"></i>
+      <div class="flex-1">
+        <p class="text-sm font-semibold text-text-primary">Firmware update available</p>
+        <p class="text-xs text-text-secondary mt-0.5">
+          Version <span class="font-mono"><%= system.firmware.latestVersion %></span> · Built <%= system.firmware.buildDate %>
+        </p>
+      </div>
+      <button type="button"
+        class="shrink-0 inline-flex items-center rounded-lg bg-warning text-white text-xs font-semibold px-3 py-1.5 hover:bg-warning/90 transition-colors">
+        Update now
+      </button>
+    </div>
+    <% } %>
+
+    <!-- LED + Notifications -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-3" aria-labelledby="led-heading">
+        <h2 id="led-heading" class="text-sm font-semibold text-text-primary">LED</h2>
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+          <div>
+            <dt class="text-text-secondary">Mode</dt>
+            <dd class="font-medium text-text-primary mt-0.5"><%= led.mode %></dd>
+          </div>
+          <div>
+            <dt class="text-text-secondary">Night Mode</dt>
+            <dd class="font-medium mt-0.5 <%= led.nightMode ? 'text-success' : 'text-text-secondary' %>">
+              <%= led.nightMode ? 'On' : 'Off' %>
+            </dd>
+          </div>
+          <% if (led.schedule) { %>
+          <div class="col-span-2">
+            <dt class="text-text-secondary">Schedule</dt>
+            <dd class="font-mono text-text-primary mt-0.5"><%= led.schedule.startTime %> – <%= led.schedule.endTime %></dd>
+          </div>
+          <% } %>
+        </dl>
+      </section>
+
+      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-3" aria-labelledby="notif-heading">
+        <h2 id="notif-heading" class="text-sm font-semibold text-text-primary">Notifications</h2>
+        <p class="text-xs text-text-secondary">
+          Email: <span class="text-text-primary font-medium"><%= notifCfg.email || '—' %></span>
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <% (notifCfg.enabled || []).forEach(function(t) { %>
+          <span class="rounded-md bg-primary-subtle text-primary text-xs px-2 py-0.5 font-medium">
+            <%= t.replace(/_/g, ' ') %>
+          </span>
+          <% }); %>
+        </div>
+      </section>
+    </div>
+
+    <!-- System Log -->
+    <section class="space-y-3" aria-labelledby="log-heading">
+      <div class="flex items-center justify-between flex-wrap gap-3">
+        <h2 id="log-heading" class="text-sm font-semibold text-text-primary">
+          System Log (<%= filteredLogs.length %>)
+        </h2>
+        <div class="flex gap-1.5 flex-wrap" role="group" aria-label="Log filter">
+          <% ['ALL','INFO','WARNING','ERROR','WAN','WIFI','DHCP'].forEach(function(f) { %>
+          <a href="/theme/modem/system?logFilter=<%= f %>"
+            class="text-xs rounded-lg border px-2.5 py-1 font-medium transition-colors
+              <%= logFilter === f
+                ? 'bg-primary text-primary-fg border-primary'
+                : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>">
+            <%= f %>
+          </a>
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-xs font-mono">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 font-sans text-xs font-medium text-text-secondary">Time</th>
+              <th class="text-left py-2.5 px-4 font-sans text-xs font-medium text-text-secondary hidden sm:table-cell">Level</th>
+              <th class="text-left py-2.5 px-4 font-sans text-xs font-medium text-text-secondary hidden md:table-cell">Source</th>
+              <th class="text-left py-2.5 px-4 font-sans text-xs font-medium text-text-secondary">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (filteredLogs.length === 0) { %>
+            <tr>
+              <td colspan="4" class="py-10 text-center font-sans text-sm text-text-secondary">No log entries.</td>
+            </tr>
+            <% } else {
+              filteredLogs.forEach(function(entry) {
+                var lc = levelColor[entry.level] || 'text-text-secondary';
+            %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+              <td class="py-2.5 px-4 text-text-secondary whitespace-nowrap"><%= fmtTime(entry.timestamp) %></td>
+              <td class="py-2.5 px-4 hidden sm:table-cell font-semibold <%= lc %>"><%= entry.level %></td>
+              <td class="py-2.5 px-4 hidden md:table-cell text-text-secondary"><%= entry.source %></td>
+              <td class="py-2.5 px-4 text-text-primary">
+                <%= entry.message %>
+                <% if (entry.details) { %>
+                <span class="text-text-secondary"> — <%= entry.details %></span>
+                <% } %>
+              </td>
+            </tr>
+            <% }); } %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+<%- include('./_nav-close') %>

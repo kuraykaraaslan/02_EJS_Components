@@ -1,0 +1,64 @@
+<%
+  var state   = locals.state   || {};
+  var devices = state.connectedDevices || [];
+  var filter  = locals.filter  || 'ALL';
+
+  var filtered = filter === 'WIRED'   ? devices.filter(function(d){ return d.connectionType === 'WIRED'; })
+               : filter === 'WIFI'    ? devices.filter(function(d){ return d.connectionType !== 'WIRED'; })
+               : filter === 'BLOCKED' ? devices.filter(function(d){ return d.isBlocked; })
+               : devices;
+
+  var filters = [
+    { id: 'ALL',     label: 'All (' + devices.length + ')' },
+    { id: 'WIRED',   label: 'Wired' },
+    { id: 'WIFI',    label: 'Wi-Fi' },
+    { id: 'BLOCKED', label: 'Blocked' },
+  ];
+%>
+
+<%- include('./_nav', { activePage: 'devices', state: state }) %>
+
+  <div class="space-y-4">
+
+    <!-- Filter tabs -->
+    <div class="flex gap-2 flex-wrap" role="group" aria-label="Device filter">
+      <% filters.forEach(function(f) { %>
+      <a href="/theme/modem/devices?filter=<%= f.id %>"
+        class="inline-flex items-center rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+          <%= filter === f.id
+            ? 'bg-primary text-primary-fg border-primary'
+            : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>">
+        <%= f.label %>
+      </a>
+      <% }); %>
+    </div>
+
+    <!-- Table -->
+    <div class="rounded-xl border border-border overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-surface-raised border-b border-border">
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Device</th>
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">IP</th>
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Connection</th>
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden lg:table-cell">Traffic</th>
+            <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (filtered.length === 0) { %>
+          <tr>
+            <td colspan="5" class="py-12 text-center text-sm text-text-secondary">No devices match this filter.</td>
+          </tr>
+          <% } else { %>
+          <% filtered.forEach(function(dev) { %>
+          <%- include('../../../modules/domain/modem/ConnectedDeviceRow', { device: dev }) %>
+          <% }); %>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+<%- include('./_nav-close') %>

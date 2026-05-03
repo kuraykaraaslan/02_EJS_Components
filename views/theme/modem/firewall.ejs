@@ -1,0 +1,116 @@
+<%
+  var state    = locals.state   || {};
+  var firewall = state.firewall || {};
+  var rules    = firewall.rules || [];
+  var macRules = firewall.macFilterRules || [];
+%>
+
+<%- include('./_nav', { activePage: 'firewall', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- Status overview -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <% [
+        { label: 'Firewall',       val: firewall.enabled       ? 'Enabled'  : 'Disabled', ok: firewall.enabled       },
+        { label: 'DoS Protection', val: firewall.dosProtection ? 'Active'   : 'Off',      ok: firewall.dosProtection },
+        { label: 'Ping from WAN',  val: firewall.pingFromWan   ? 'Allowed'  : 'Blocked',  ok: !firewall.pingFromWan  },
+        { label: 'SSH from WAN',   val: firewall.sshFromWan    ? 'Allowed'  : 'Blocked',  ok: !firewall.sshFromWan   },
+      ].forEach(function(c) { %>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary"><%= c.label %></p>
+        <p class="text-sm font-semibold mt-1 <%= c.ok ? 'text-success' : 'text-error' %>"><%= c.val %></p>
+      </div>
+      <% }); %>
+    </div>
+
+    <!-- Rules -->
+    <section class="space-y-3" aria-labelledby="fw-rules-heading">
+      <h2 id="fw-rules-heading" class="text-sm font-semibold text-text-primary">Rules (<%= rules.length %>)</h2>
+      <% if (rules.length === 0) { %>
+      <p class="text-sm text-text-secondary py-4">No custom firewall rules configured.</p>
+      <% } else { %>
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">#</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Name</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Target</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Proto</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden lg:table-cell">Dst Port</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% rules.sort(function(a, b){ return a.order - b.order; }).forEach(function(rule) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors<%= !rule.enabled ? ' opacity-50' : '' %>">
+              <td class="py-3 px-4 text-xs text-text-secondary tabular-nums"><%= rule.order %></td>
+              <td class="py-3 px-4">
+                <span class="font-medium text-text-primary"><%= rule.name %></span>
+                <% if (!rule.enabled) { %>
+                <span class="ml-1.5 text-xs text-text-secondary">(off)</span>
+                <% } %>
+              </td>
+              <td class="py-3 px-4 hidden md:table-cell text-xs font-mono text-text-secondary"><%= rule.target %></td>
+              <td class="py-3 px-4 hidden md:table-cell text-xs text-text-secondary"><%= rule.protocol %></td>
+              <td class="py-3 px-4 hidden lg:table-cell text-xs font-mono text-text-secondary">
+                <%
+                  var dp = rule.dstPort;
+                  var dpStr = dp === null || dp === undefined ? '*'
+                            : (typeof dp === 'object' && dp.start !== undefined) ? dp.start + '–' + dp.end
+                            : String(dp);
+                %>
+                <%= dpStr %>
+              </td>
+              <td class="py-3 px-4">
+                <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium
+                  <%= rule.action === 'ACCEPT' ? 'bg-success/10 text-success'
+                    : rule.action === 'DROP'   ? 'bg-error/10 text-error'
+                    : 'bg-warning/10 text-warning' %>">
+                  <%= rule.action %>
+                </span>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </section>
+
+    <!-- MAC Filter -->
+    <section class="space-y-3" aria-labelledby="mac-filter-heading">
+      <div class="flex items-center gap-3">
+        <h2 id="mac-filter-heading" class="text-sm font-semibold text-text-primary">MAC Filter</h2>
+        <span class="text-xs bg-surface-overlay border border-border rounded px-2 py-0.5 text-text-secondary font-mono">
+          <%= firewall.macFilterMode %>
+        </span>
+      </div>
+      <% if (macRules.length === 0) { %>
+      <p class="text-sm text-text-secondary">No MAC filter entries.</p>
+      <% } else { %>
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">MAC Address</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Comment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% macRules.forEach(function(r) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+              <td class="py-3 px-4 font-mono text-sm text-text-primary"><%= r.mac %></td>
+              <td class="py-3 px-4 text-sm text-text-secondary"><%= r.comment || '—' %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </section>
+
+  </div>
+
+<%- include('./_nav-close') %>

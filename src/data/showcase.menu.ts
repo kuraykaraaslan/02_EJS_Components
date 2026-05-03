@@ -111,10 +111,24 @@ const NAV_GROUPS: ShowcaseNavGroup[] = [
     ],
   },
   {
+    label: 'Domain · Modem',
+    collapsible: true,
+    items: [
+      { id: 'modem-connection-status-badge', title: 'ConnectionStatusBadge', category: 'Domain · Modem', abbr: 'CS' },
+      { id: 'modem-system-status-card',      title: 'SystemStatusCard',      category: 'Domain · Modem', abbr: 'SS' },
+      { id: 'modem-wan-status-card',         title: 'WanStatusCard',         category: 'Domain · Modem', abbr: 'WS' },
+      { id: 'modem-wifi-network-card',       title: 'WifiNetworkCard',       category: 'Domain · Modem', abbr: 'WN' },
+      { id: 'modem-connected-device-row',    title: 'ConnectedDeviceRow',    category: 'Domain · Modem', abbr: 'CD' },
+      { id: 'modem-port-forward-row',        title: 'PortForwardRow',        category: 'Domain · Modem', abbr: 'PF' },
+      { id: 'modem-alert-item',              title: 'AlertItem',             category: 'Domain · Modem', abbr: 'AI' },
+    ],
+  },
+  {
     label: 'Themes',
     collapsible: true,
     items: [
       { id: 'theme-common', title: 'Common Theme', category: 'Theme', abbr: 'CT', href: '/theme/common' },
+      { id: 'theme-modem',  title: 'Modem Theme',  category: 'Theme', abbr: 'MT', href: '/theme/modem'  },
     ],
   },
 ];

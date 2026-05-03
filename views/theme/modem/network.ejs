@@ -1,0 +1,126 @@
+<%
+  var state = locals.state || {};
+  var wan   = state.wan   || {};
+  var lan   = state.lan   || {};
+  var dhcp  = lan.dhcp    || {};
+  var flash = locals.flash || '';
+%>
+
+<%- include('./_nav', { activePage: 'network', state: state }) %>
+
+  <div class="space-y-6">
+
+    <% if (flash) { %>
+    <div class="rounded-lg bg-success/10 border border-success/30 px-4 py-2.5 text-sm text-success font-medium">
+      <i class="fa-solid fa-check mr-1" aria-hidden="true"></i><%= flash %>
+    </div>
+    <% } %>
+
+    <!-- WAN Status -->
+    <section class="space-y-3" aria-labelledby="wan-heading">
+      <h2 id="wan-heading" class="text-sm font-semibold text-text-primary">WAN Status</h2>
+      <%- include('../../../modules/domain/modem/WanStatusCard', { wan: wan }) %>
+      <% if (wan.pppoe) { %>
+      <div class="rounded-xl border border-border bg-surface-raised p-4">
+        <p class="text-xs font-semibold text-text-primary mb-3">PPPoE</p>
+        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-xs">
+          <div>
+            <dt class="text-text-secondary">Username</dt>
+            <dd class="mt-0.5 font-mono text-text-primary"><%= wan.pppoe.username %></dd>
+          </div>
+          <div>
+            <dt class="text-text-secondary">Service Name</dt>
+            <dd class="mt-0.5 font-mono text-text-primary"><%= wan.pppoe.serviceName || '—' %></dd>
+          </div>
+          <div>
+            <dt class="text-text-secondary">MTU</dt>
+            <dd class="mt-0.5 font-mono text-text-primary"><%= wan.pppoe.mtu %></dd>
+          </div>
+          <div>
+            <dt class="text-text-secondary">Connect on Demand</dt>
+            <dd class="mt-0.5 text-text-primary font-medium"><%= wan.pppoe.connectOnDemand ? 'Yes' : 'No' %></dd>
+          </div>
+        </dl>
+      </div>
+      <% } %>
+    </section>
+
+    <!-- LAN -->
+    <section class="space-y-3" aria-labelledby="lan-heading">
+      <h2 id="lan-heading" class="text-sm font-semibold text-text-primary">LAN Configuration</h2>
+      <div class="rounded-xl border border-border bg-surface-raised p-5">
+        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+          <% [
+            { label: 'LAN IP',     value: lan.ipAddress  },
+            { label: 'Subnet',     value: lan.subnetMask },
+            { label: 'IPv6',       value: lan.ipv6Enabled ? 'Enabled' : 'Disabled' },
+          ].forEach(function(f) { %>
+          <div>
+            <dt class="text-xs text-text-secondary"><%= f.label %></dt>
+            <dd class="mt-0.5 font-mono font-medium text-text-primary"><%= f.value || '—' %></dd>
+          </div>
+          <% }); %>
+        </dl>
+      </div>
+    </section>
+
+    <!-- DHCP -->
+    <section class="space-y-3" aria-labelledby="dhcp-heading">
+      <h2 id="dhcp-heading" class="text-sm font-semibold text-text-primary">DHCP Server</h2>
+      <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-text-primary">Status</span>
+          <span class="inline-flex items-center gap-1.5 rounded-full border text-xs px-2.5 py-1 font-medium
+            <%= dhcp.enabled ? 'bg-success/10 border-success/30 text-success' : 'bg-surface-overlay border-border text-text-secondary' %>">
+            <span class="h-1.5 w-1.5 rounded-full flex-shrink-0 <%= dhcp.enabled ? 'bg-success' : 'bg-text-secondary' %>"></span>
+            <%= dhcp.enabled ? 'Enabled' : 'Disabled' %>
+          </span>
+        </div>
+        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
+          <% [
+            { label: 'Pool Start',    value: dhcp.poolStart          },
+            { label: 'Pool End',      value: dhcp.poolEnd            },
+            { label: 'Lease Time',    value: dhcp.leaseHours + 'h'   },
+            { label: 'Gateway',       value: dhcp.gateway            },
+            { label: 'DNS Primary',   value: dhcp.dnsPrimary         },
+            { label: 'DNS Secondary', value: dhcp.dnsSecondary || '—' },
+          ].forEach(function(f) { %>
+          <div>
+            <dt class="text-xs text-text-secondary"><%= f.label %></dt>
+            <dd class="mt-0.5 font-mono font-medium text-text-primary"><%= f.value || '—' %></dd>
+          </div>
+          <% }); %>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Static Bindings -->
+    <% if (dhcp.staticBindings && dhcp.staticBindings.length > 0) { %>
+    <section class="space-y-3" aria-labelledby="bindings-heading">
+      <h2 id="bindings-heading" class="text-sm font-semibold text-text-primary">Static DHCP Bindings</h2>
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Hostname</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">MAC</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% dhcp.staticBindings.forEach(function(b) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+              <td class="py-3 px-4 font-medium text-text-primary"><%= b.hostname %></td>
+              <td class="py-3 px-4 font-mono text-xs text-text-secondary"><%= b.mac %></td>
+              <td class="py-3 px-4 font-mono text-text-primary"><%= b.ip %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <% } %>
+
+  </div>
+
+<%- include('./_nav-close') %>

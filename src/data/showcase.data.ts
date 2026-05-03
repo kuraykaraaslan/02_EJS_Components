@@ -4,6 +4,7 @@ import { buildMoleculesData }    from './sections/ui-molecules.showcase';
 import { buildOrganismsData }    from './sections/ui-organisms.showcase';
 import { buildAppPatternsData }  from './sections/app-patterns.showcase';
 import { buildDomainCommonData } from './sections/domain-common.showcase';
+import { buildDomainModemData }  from './sections/domain-modem.showcase';
 
 export const SHOWCASE_DATA: ShowcaseItem[] = [
   ...buildAtomsData(),
@@ -11,6 +12,7 @@ export const SHOWCASE_DATA: ShowcaseItem[] = [
   ...buildOrganismsData(),
   ...buildAppPatternsData(),
   ...buildDomainCommonData(),
+  ...buildDomainModemData(),
 ];
 
 export const SHOWCASE_DATA_MAP: Record<string, ShowcaseItem> = Object.fromEntries(
