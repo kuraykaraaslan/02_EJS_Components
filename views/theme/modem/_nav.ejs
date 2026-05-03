@@ -4,19 +4,23 @@
   var _unread     = (_state.alerts || []).filter(function(a) { return !a.read; }).length;
 
   var nav = [
-    { id: 'dashboard', label: 'Dashboard', href: '/theme/modem',          icon: 'fa-solid fa-gauge'          },
-    { id: 'network',   label: 'Network',   href: '/theme/modem/network',   icon: 'fa-solid fa-network-wired'  },
-    { id: 'wifi',      label: 'Wi-Fi',     href: '/theme/modem/wifi',      icon: 'fa-solid fa-wifi'           },
-    { id: 'devices',   label: 'Devices',   href: '/theme/modem/devices',   icon: 'fa-solid fa-display'        },
-    { id: 'firewall',  label: 'Firewall',  href: '/theme/modem/firewall',  icon: 'fa-solid fa-shield-halved'  },
-    { id: 'advanced',  label: 'Advanced',  href: '/theme/modem/advanced',  icon: 'fa-solid fa-sliders'        },
-    { id: 'system',    label: 'System',    href: '/theme/modem/system',    icon: 'fa-solid fa-microchip'      },
+    { id: 'dashboard', label: 'Dashboard',         href: '/theme/modem',           icon: 'fa-solid fa-gauge'          },
+    { id: 'network',   label: 'Network',            href: '/theme/modem/network',   icon: 'fa-solid fa-network-wired'  },
+    { id: 'wifi',      label: 'Wi-Fi',              href: '/theme/modem/wifi',      icon: 'fa-solid fa-wifi'           },
+    { id: 'devices',   label: 'Devices',            href: '/theme/modem/devices',   icon: 'fa-solid fa-display'        },
+    { id: 'firewall',  label: 'Firewall',           href: '/theme/modem/firewall',  icon: 'fa-solid fa-shield-halved'  },
+    { id: 'nat',       label: 'NAT',                href: '/theme/modem/nat',       icon: 'fa-solid fa-right-left'     },
+    { id: 'vpn',       label: 'VPN',                href: '/theme/modem/vpn',       icon: 'fa-solid fa-lock'           },
+    { id: 'qos',       label: 'QoS',                href: '/theme/modem/qos',       icon: 'fa-solid fa-sliders'        },
+    { id: 'parental',  label: 'Parental Controls',  href: '/theme/modem/parental',  icon: 'fa-solid fa-shield-child'   },
+    { id: 'system',    label: 'System',             href: '/theme/modem/system',    icon: 'fa-solid fa-microchip'      },
+    { id: 'settings',  label: 'Settings',           href: '/theme/modem/settings',  icon: 'fa-solid fa-gear'           },
   ];
 
-  var sysModel   = (_state.system && _state.system.model)    ? _state.system.model.model    : 'Router';
-  var sysHost    = (_state.system && _state.system.hostname)  ? _state.system.hostname       : '';
-  var wanStatus  = (_state.wan   && _state.wan.status)        ? _state.wan.status             : 'DISCONNECTED';
-  var wanIp      = (_state.wan   && _state.wan.ipAddress)     ? _state.wan.ipAddress          : '—';
+  var sysModel  = (_state.system && _state.system.model)   ? _state.system.model.model   : 'Router';
+  var sysHost   = (_state.system && _state.system.hostname) ? _state.system.hostname      : '';
+  var wanStatus = (_state.wan   && _state.wan.status)       ? _state.wan.status           : 'DISCONNECTED';
+  var wanIp     = (_state.wan   && _state.wan.ipAddress)    ? _state.wan.ipAddress        : '—';
 
   var activeNav = nav.find(function(n) { return n.id === _activePage; });
 %>
@@ -47,7 +51,7 @@
               <%= isActive ? 'bg-primary-subtle text-primary' : 'text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>"
             <%= isActive ? 'aria-current="page"' : '' %>>
             <i class="<%= item.icon %> w-4 shrink-0 text-xs" aria-hidden="true"></i>
-            <%= item.label %>
+            <span class="truncate"><%= item.label %></span>
             <% if (item.id === 'dashboard' && _unread > 0) { %>
             <span class="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-error text-primary-fg text-xs font-bold leading-none px-1"
                   aria-label="<%= _unread %> unread alerts">
@@ -65,9 +69,7 @@
         <span class="h-2 w-2 rounded-full flex-shrink-0
           <%= wanStatus === 'CONNECTED' ? 'bg-success' : wanStatus === 'CONNECTING' ? 'bg-warning animate-pulse' : 'bg-error' %>"
           aria-hidden="true"></span>
-        <span class="text-text-secondary truncate">
-          <span class="font-mono text-text-primary"><%= wanIp %></span>
-        </span>
+        <span class="font-mono text-text-primary truncate"><%= wanIp %></span>
       </div>
     </div>
 

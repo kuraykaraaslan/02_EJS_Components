@@ -5,21 +5,54 @@
   var networks = wifi.networks  || [];
   var wps      = wifi.wps       || {};
   var roaming  = wifi.roaming   || {};
+  var devices  = state.connectedDevices || [];
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+
+  var totalWifiClients = devices.filter(function(d) { return d.connectionType !== 'WIRED'; }).length;
+  var clients24 = devices.filter(function(d) { return d.connectionType === 'WIFI_2_4'; }).length;
+  var clients5  = devices.filter(function(d) { return d.connectionType === 'WIFI_5'; }).length;
 %>
 
 <%- include('./_nav', { activePage: 'wifi', state: state }) %>
 
   <div class="space-y-6">
 
-    <!-- Radio settings -->
+    <!-- Summary cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Wi-Fi Clients</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= totalWifiClients %></p>
+        <p class="text-xs text-text-secondary mt-0.5">connected</p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">2.4 GHz</p>
+        <p class="text-2xl font-bold text-info mt-1"><%= clients24 %></p>
+        <p class="text-xs text-text-secondary mt-0.5">clients</p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">5 GHz</p>
+        <p class="text-2xl font-bold text-primary mt-1"><%= clients5 %></p>
+        <p class="text-xs text-text-secondary mt-0.5">clients</p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">SSIDs Active</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= networks.filter(function(n){ return n.enabled; }).length %></p>
+        <p class="text-xs text-text-secondary mt-0.5">of <%= networks.length %> total</p>
+      </div>
+    </div>
+
+    <!-- Radio Configuration -->
     <section class="space-y-3" aria-labelledby="radios-heading">
-      <h2 id="radios-heading" class="text-sm font-semibold text-text-primary">Radio Settings</h2>
+      <h2 id="radios-heading" class="text-sm font-semibold text-text-primary">Radio Configuration</h2>
       <div class="grid md:grid-cols-2 gap-4">
         <% radios.forEach(function(radio) { %>
         <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+              <span class="flex h-9 w-9 items-center justify-center rounded-lg
+                <%= radio.band === '2.4GHz' ? 'bg-info/10 text-info' : 'bg-primary-subtle text-primary' %>">
                 <i class="fa-solid fa-wifi text-sm" aria-hidden="true"></i>
               </span>
               <div>
@@ -27,77 +60,256 @@
                 <p class="text-xs text-text-secondary"><%= radio.standard %></p>
               </div>
             </div>
-            <span class="inline-flex items-center gap-1.5 rounded-full border text-xs px-2.5 py-1 font-medium
-              <%= radio.enabled ? 'bg-success/10 border-success/30 text-success' : 'bg-surface-overlay border-border text-text-secondary' %>">
-              <span class="h-1.5 w-1.5 rounded-full flex-shrink-0 <%= radio.enabled ? 'bg-success' : 'bg-text-secondary' %>"></span>
-              <%= radio.enabled ? 'On' : 'Off' %>
-            </span>
+            <button type="button" role="switch" aria-checked="<%= radio.enabled ? 'true' : 'false' %>"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+                <%= radio.enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+              <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= radio.enabled ? 'translate-x-6' : 'translate-x-1' %>"></span>
+            </button>
           </div>
-          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
-            <% [
-              { label: 'Channel',     value: String(radio.channel)       },
-              { label: 'Width',       value: radio.channelWidth          },
-              { label: 'TX Power',    value: radio.txPowerPercent + '%'  },
-              { label: 'OFDMA',       value: radio.ofdma      ? 'Yes' : 'No' },
-              { label: 'MU-MIMO',     value: radio.mu_mimo    ? 'Yes' : 'No' },
-              { label: 'Beamforming', value: radio.beamforming ? 'Yes' : 'No' },
-            ].forEach(function(f) { %>
+
+          <div class="grid grid-cols-2 gap-3 pt-2 border-t border-border">
             <div>
-              <dt class="text-text-secondary"><%= f.label %></dt>
-              <dd class="font-medium text-text-primary mt-0.5"><%= f.value %></dd>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Channel</label>
+              <select class="<%= sel %>">
+                <option value="auto" <%= radio.channel === 'auto' ? 'selected' : '' %>>Auto</option>
+                <% if (radio.band === '2.4GHz') { %>
+                <% [1,2,3,4,5,6,7,8,9,10,11].forEach(function(ch) { %>
+                <option value="<%= ch %>" <%= radio.channel === ch ? 'selected' : '' %>><%= ch %></option>
+                <% }); %>
+                <% } else { %>
+                <% [36,40,44,48,52,56,60,64,100,104,108,112,116,120,124,128,132,136,140].forEach(function(ch) { %>
+                <option value="<%= ch %>" <%= radio.channel === ch ? 'selected' : '' %>><%= ch %></option>
+                <% }); %>
+                <% } %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Channel Width</label>
+              <select class="<%= sel %>">
+                <option value="20MHz"  <%= radio.channelWidth === '20MHz'  ? 'selected' : '' %>>20 MHz</option>
+                <option value="40MHz"  <%= radio.channelWidth === '40MHz'  ? 'selected' : '' %>>40 MHz</option>
+                <% if (radio.band !== '2.4GHz') { %>
+                <option value="80MHz"  <%= radio.channelWidth === '80MHz'  ? 'selected' : '' %>>80 MHz</option>
+                <option value="160MHz" <%= radio.channelWidth === '160MHz' ? 'selected' : '' %>>160 MHz</option>
+                <% } %>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-2">TX Power — <%= radio.txPowerPercent %>%</label>
+            <div class="flex items-center gap-3">
+              <span class="text-xs text-text-secondary">Low</span>
+              <input type="range" min="10" max="100" value="<%= radio.txPowerPercent %>"
+                class="flex-1 h-1.5 rounded-full accent-primary">
+              <span class="text-xs text-text-secondary">High</span>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-border space-y-2">
+            <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Advanced</p>
+            <% [
+              { label: 'Beamforming', key: 'beamforming', val: radio.beamforming },
+              { label: 'MU-MIMO',     key: 'mu_mimo',     val: radio.mu_mimo     },
+              { label: 'OFDMA',       key: 'ofdma',       val: radio.ofdma       },
+            ].forEach(function(feat) { %>
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-text-primary"><%= feat.label %></span>
+              <button type="button" role="switch" aria-checked="<%= feat.val ? 'true' : 'false' %>"
+                class="relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors
+                  <%= feat.val ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+                <span class="inline-block h-3 w-3 rounded-full bg-white shadow transition-transform <%= feat.val ? 'translate-x-5' : 'translate-x-1' %>"></span>
+              </button>
             </div>
             <% }); %>
-          </dl>
+          </div>
+
+          <div class="flex justify-end pt-2 border-t border-border">
+            <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Apply</button>
+          </div>
         </div>
         <% }); %>
       </div>
     </section>
 
-    <!-- Networks -->
+    <!-- Wi-Fi Networks -->
     <section class="space-y-3" aria-labelledby="networks-heading">
-      <h2 id="networks-heading" class="text-sm font-semibold text-text-primary">Networks (<%= networks.length %>)</h2>
-      <div class="space-y-2">
+      <div class="flex items-center justify-between">
+        <h2 id="networks-heading" class="text-sm font-semibold text-text-primary">Networks (<%= networks.length %>)</h2>
+      </div>
+
+      <div class="space-y-3">
         <% networks.forEach(function(net) { %>
-        <%- include('../../../modules/domain/modem/WifiNetworkCard', { network: net }) %>
+        <div class="rounded-xl border border-border bg-surface-raised overflow-hidden">
+          <%- include('../../../modules/domain/modem/WifiNetworkCard', { network: net }) %>
+          <!-- Inline edit form -->
+          <div class="border-t border-border p-4 bg-surface-base space-y-3">
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-text-secondary mb-1.5">SSID</label>
+                <input type="text" value="<%= net.ssid %>" class="<%= inp %>">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-text-secondary mb-1.5">Security</label>
+                <select class="<%= sel %>">
+                  <option value="OPEN"            <%= net.securityMode === 'OPEN'            ? 'selected' : '' %>>Open (no password)</option>
+                  <option value="WPA2_PERSONAL"   <%= net.securityMode === 'WPA2_PERSONAL'   ? 'selected' : '' %>>WPA2 Personal</option>
+                  <option value="WPA3_PERSONAL"   <%= net.securityMode === 'WPA3_PERSONAL'   ? 'selected' : '' %>>WPA3 Personal</option>
+                  <option value="WPA2_WPA3_MIXED" <%= net.securityMode === 'WPA2_WPA3_MIXED' ? 'selected' : '' %>>WPA2/WPA3 Mixed</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-text-secondary mb-1.5">Password</label>
+                <div class="relative">
+                  <input type="password" value="<%= net.password %>" class="<%= inp %> pr-10">
+                  <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+                    <i class="fa-solid fa-eye text-xs" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" <%= net.hidden ? 'checked' : '' %> class="rounded border-border text-primary">
+                <span class="text-xs text-text-secondary">Hide SSID</span>
+              </label>
+              <% if (net.isGuest) { %>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" <%= net.guestIsolate ? 'checked' : '' %> class="rounded border-border text-primary">
+                <span class="text-xs text-text-secondary">Isolate guests from LAN</span>
+              </label>
+              <% } %>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-border">
+              <button type="button" class="text-xs text-error hover:underline">Delete Network</button>
+              <div class="flex gap-2">
+                <button type="button" class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Discard</button>
+                <button type="button" class="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
         <% }); %>
+      </div>
+
+      <!-- Add Network form -->
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-5 space-y-4">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Add New Network</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">SSID</label>
+            <input type="text" placeholder="My Network" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Band</label>
+            <select class="<%= sel %>">
+              <option value="2.4GHz">2.4 GHz</option>
+              <option value="5GHz">5 GHz</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Security</label>
+            <select class="<%= sel %>">
+              <option value="WPA2_WPA3_MIXED">WPA2/WPA3 Mixed</option>
+              <option value="WPA3_PERSONAL">WPA3 Personal</option>
+              <option value="WPA2_PERSONAL">WPA2 Personal</option>
+              <option value="OPEN">Open</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Password</label>
+            <input type="text" placeholder="Min. 8 characters" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Max Clients</label>
+            <input type="number" placeholder="Unlimited" min="1" max="128" class="<%= inp %>">
+          </div>
+          <div class="flex items-end">
+            <label class="flex items-center gap-2 cursor-pointer pb-2">
+              <input type="checkbox" class="rounded border-border text-primary">
+              <span class="text-xs text-text-secondary">Guest network (isolated)</span>
+            </label>
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Create Network
+          </button>
+        </div>
       </div>
     </section>
 
     <!-- WPS + Roaming -->
     <div class="grid md:grid-cols-2 gap-4">
-      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-3" aria-labelledby="wps-heading">
+
+      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-4" aria-labelledby="wps-heading">
         <div class="flex items-center justify-between">
           <h2 id="wps-heading" class="text-sm font-semibold text-text-primary">WPS</h2>
-          <span class="text-xs font-medium <%= wps.enabled ? 'text-success' : 'text-text-secondary' %>">
-            <%= wps.enabled ? 'Enabled' : 'Disabled' %>
-          </span>
+          <button type="button" role="switch" aria-checked="<%= wps.enabled ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+              <%= wps.enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= wps.enabled ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
         </div>
-        <p class="text-xs text-text-secondary">
-          PIN: <span class="font-mono text-text-primary"><%= wps.pin %></span>
+        <% if (!wps.enabled) { %>
+        <p class="text-xs text-success flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> WPS is disabled — recommended for security
         </p>
+        <% } else { %>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">WPS PIN</label>
+            <div class="flex gap-2">
+              <input type="text" value="<%= wps.pin %>" readonly class="<%= inp %> font-mono flex-1 opacity-60">
+              <button type="button" class="rounded-lg border border-border px-3 py-2 text-xs font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Regenerate</button>
+            </div>
+          </div>
+          <button type="button" class="w-full rounded-lg border border-primary text-primary text-sm font-medium px-4 py-2 hover:bg-primary-subtle transition-colors">
+            <i class="fa-solid fa-link mr-1.5" aria-hidden="true"></i> Push Button Connect
+          </button>
+          <p class="text-xs text-warning flex items-center gap-1.5">
+            <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+            WPS PIN has known vulnerabilities. Prefer Push Button method.
+          </p>
+        </div>
+        <% } %>
       </section>
 
-      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-3" aria-labelledby="roaming-heading">
+      <section class="rounded-xl border border-border bg-surface-raised p-5 space-y-4" aria-labelledby="roaming-heading">
         <div class="flex items-center justify-between">
-          <h2 id="roaming-heading" class="text-sm font-semibold text-text-primary">Roaming</h2>
-          <span class="text-xs font-medium <%= roaming.enabled ? 'text-success' : 'text-text-secondary' %>">
-            <%= roaming.enabled ? 'Enabled' : 'Disabled' %>
-          </span>
+          <h2 id="roaming-heading" class="text-sm font-semibold text-text-primary">Fast Roaming (802.11r/k/v)</h2>
+          <button type="button" role="switch" aria-checked="<%= roaming.enabled ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+              <%= roaming.enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= roaming.enabled ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
         </div>
-        <dl class="grid grid-cols-3 gap-2 text-xs">
+        <div class="space-y-2 pt-2 border-t border-border">
           <% [
-            ['802.11r', roaming.threshold80211r],
-            ['802.11k', roaming.threshold80211k],
-            ['802.11v', roaming.threshold80211v],
+            { label: '802.11r (Fast BSS Transition)', val: roaming.threshold80211r },
+            { label: '802.11k (Neighbor Reports)',    val: roaming.threshold80211k },
+            { label: '802.11v (BSS Transition Mgmt)', val: roaming.threshold80211v },
           ].forEach(function(r) { %>
-          <div>
-            <dt class="text-text-secondary"><%= r[0] %></dt>
-            <dd class="font-medium mt-0.5 <%= r[1] ? 'text-success' : 'text-text-secondary' %>"><%= r[1] ? 'On' : 'Off' %></dd>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-text-secondary"><%= r.label %></span>
+            <span class="text-xs font-semibold <%= r.val ? 'text-success' : 'text-text-secondary' %>"><%= r.val ? 'On' : 'Off' %></span>
           </div>
           <% }); %>
-        </dl>
-        <p class="text-xs text-text-secondary">RSSI threshold: <span class="text-text-primary font-medium"><%= roaming.rssiThreshold %> dBm</span></p>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-text-secondary mb-1.5">RSSI Threshold (dBm)</label>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-text-secondary">–90</span>
+            <input type="range" min="-90" max="-50" value="<%= roaming.rssiThreshold %>"
+              class="flex-1 h-1.5 rounded-full accent-primary">
+            <span class="text-xs font-mono text-text-primary w-10 text-right"><%= roaming.rssiThreshold %> dBm</span>
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save</button>
+        </div>
       </section>
+
     </div>
 
   </div>

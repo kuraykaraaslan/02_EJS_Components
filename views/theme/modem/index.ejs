@@ -6,85 +6,187 @@
   var devices = state.connectedDevices || [];
   var alerts  = state.alerts   || [];
   var traffic = state.traffic  || {};
+  var nat     = state.nat      || {};
+  var vpn     = state.vpn      || [];
 
-  var wiredCount   = devices.filter(function(d){ return d.connectionType === 'WIRED'; }).length;
-  var wifiCount    = devices.filter(function(d){ return d.connectionType !== 'WIRED'; }).length;
-  var unread       = alerts.filter(function(a){ return !a.read; });
+  var unread      = alerts.filter(function(a){ return !a.read; });
+  var wiredCount  = devices.filter(function(d){ return d.connectionType === 'WIRED'; }).length;
+  var wifiCount   = devices.filter(function(d){ return d.connectionType !== 'WIRED'; }).length;
+  var blockedCount = devices.filter(function(d){ return d.isBlocked; }).length;
+  var activeVpn   = vpn.filter(function(v){ return v.status === 'ACTIVE'; }).length;
+  var pfCount     = (nat.portForwardRules || []).filter(function(r){ return r.enabled; }).length;
 
   var wanIface = (traffic.interfaces || []).find(function(i){ return i.interface === 'WAN'; }) || {};
 
   function fmtBytes(b) {
+    if (!b) return '0 B';
     if (b >= 1073741824) return (b / 1073741824).toFixed(1) + ' GB';
     if (b >= 1048576)    return (b / 1048576).toFixed(0)    + ' MB';
     return (b / 1024).toFixed(0) + ' KB';
   }
+
+  var firmware = system.firmware || {};
+  var resources = system.resources || {};
 %>
 
 <%- include('./_nav', { activePage: 'dashboard', state: state }) %>
 
   <div class="space-y-6">
 
-    <!-- Stats row -->
+    <!-- Top stats -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
-        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">WAN IP</p>
-        <p class="text-lg font-bold font-mono text-text-primary leading-tight truncate"><%= wan.ipAddress || '—' %></p>
-        <div class="flex items-center gap-1.5">
-          <span class="h-1.5 w-1.5 rounded-full flex-shrink-0
+
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1.5">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">WAN</p>
+          <span class="h-2 w-2 rounded-full
             <%= wan.status === 'CONNECTED' ? 'bg-success' : wan.status === 'CONNECTING' ? 'bg-warning animate-pulse' : 'bg-error' %>"
             aria-hidden="true"></span>
-          <span class="text-xs text-text-secondary"><%= wan.connectionType %></span>
         </div>
+        <p class="text-sm font-bold font-mono text-text-primary leading-tight truncate"><%= wan.ipAddress || '—' %></p>
+        <p class="text-xs text-text-secondary"><%= wan.connectionType %> · MTU <%= wan.mtu %></p>
       </div>
 
-      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1.5">
         <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">Devices</p>
-        <p class="text-3xl font-bold text-text-primary"><%= devices.length %></p>
-        <p class="text-xs text-text-secondary"><%= wiredCount %> wired · <%= wifiCount %> wireless</p>
-      </div>
-
-      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
-        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">WAN Download</p>
-        <p class="text-2xl font-bold text-text-primary"><%= fmtBytes(wanIface.downloadBytes || 0) %></p>
+        <p class="text-3xl font-bold text-text-primary leading-none"><%= devices.length %></p>
         <p class="text-xs text-text-secondary">
-          <i class="fa-solid fa-arrow-up text-info" aria-hidden="true"></i>
-          <%= fmtBytes(wanIface.uploadBytes || 0) %> up
+          <%= wiredCount %> wired · <%= wifiCount %> wireless
+          <% if (blockedCount > 0) { %> · <span class="text-error font-medium"><%= blockedCount %> blocked</span><% } %>
         </p>
       </div>
 
-      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1">
-        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">Alerts</p>
-        <p class="text-3xl font-bold <%= unread.length > 0 ? 'text-error' : 'text-text-primary' %>"><%= unread.length %></p>
-        <p class="text-xs text-text-secondary">unread</p>
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1.5">
+        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">Traffic (WAN)</p>
+        <p class="text-xl font-bold text-text-primary"><%= fmtBytes(wanIface.downloadBytes || 0) %></p>
+        <p class="text-xs text-text-secondary">
+          <i class="fa-solid fa-arrow-up text-info" aria-hidden="true"></i> <%= fmtBytes(wanIface.uploadBytes || 0) %> up
+        </p>
       </div>
+
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1.5">
+        <p class="text-xs font-medium text-text-secondary uppercase tracking-wide">Alerts</p>
+        <p class="text-3xl font-bold leading-none <%= unread.length > 0 ? 'text-error' : 'text-text-primary' %>">
+          <%= unread.length %>
+        </p>
+        <p class="text-xs text-text-secondary">unread · <%= alerts.length %> total</p>
+      </div>
+
     </div>
 
-    <!-- System + WAN -->
+    <!-- System + WAN cards -->
     <div class="grid md:grid-cols-2 gap-4">
       <%- include('../../../modules/domain/modem/SystemStatusCard', {
         hostname:  system.hostname,
         model:     system.model,
-        firmware:  system.firmware,
-        resources: system.resources,
+        firmware:  firmware,
+        resources: resources,
         time:      system.time,
       }) %>
       <%- include('../../../modules/domain/modem/WanStatusCard', { wan: wan }) %>
     </div>
 
-    <!-- Wi-Fi networks -->
-    <section class="space-y-3" aria-labelledby="wifi-heading">
-      <h2 id="wifi-heading" class="text-sm font-semibold text-text-primary">Wi-Fi Networks</h2>
-      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <% (wifi.networks || []).forEach(function(net) { %>
-        <%- include('../../../modules/domain/modem/WifiNetworkCard', { network: net, editHref: '/theme/modem/wifi' }) %>
-        <% }); %>
+    <!-- Firmware update banner -->
+    <% if (firmware.updateAvailable) { %>
+    <div class="flex items-center gap-4 rounded-xl border border-warning/30 bg-warning/5 p-4">
+      <i class="fa-solid fa-circle-arrow-up text-warning text-xl shrink-0" aria-hidden="true"></i>
+      <div class="flex-1">
+        <p class="text-sm font-semibold text-text-primary">Firmware update available</p>
+        <p class="text-xs text-text-secondary mt-0.5">
+          Version <span class="font-mono"><%= firmware.latestVersion %></span> — go to
+          <a href="/theme/modem/system" class="text-primary hover:underline">System</a> to install.
+        </p>
       </div>
-    </section>
+      <a href="/theme/modem/system"
+         class="shrink-0 inline-flex items-center rounded-lg bg-warning text-white text-xs font-semibold px-3 py-1.5 hover:bg-warning/90 transition-colors">
+        View
+      </a>
+    </div>
+    <% } %>
 
-    <!-- Unread alerts -->
+    <!-- Wi-Fi networks + quick stats row -->
+    <div class="grid lg:grid-cols-3 gap-4">
+
+      <!-- Wi-Fi networks -->
+      <div class="lg:col-span-2 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-text-primary">Wi-Fi Networks</h2>
+          <a href="/theme/modem/wifi" class="text-xs text-primary hover:underline">Manage</a>
+        </div>
+        <div class="space-y-2">
+          <% (wifi.networks || []).forEach(function(net) { %>
+          <%- include('../../../modules/domain/modem/WifiNetworkCard', { network: net }) %>
+          <% }); %>
+        </div>
+      </div>
+
+      <!-- Quick links column -->
+      <div class="space-y-3">
+        <h2 class="text-sm font-semibold text-text-primary">Quick Status</h2>
+        <div class="space-y-2">
+
+          <a href="/theme/modem/firewall"
+            class="flex items-center justify-between rounded-xl border border-border bg-surface-raised px-4 py-3 hover:border-primary transition-colors group">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-shield-halved text-success text-sm" aria-hidden="true"></i>
+              <span class="text-sm text-text-primary font-medium">Firewall</span>
+            </div>
+            <span class="text-xs text-success font-medium">
+              <%= (state.firewall && state.firewall.enabled) ? 'Active' : 'Off' %>
+            </span>
+          </a>
+
+          <a href="/theme/modem/vpn"
+            class="flex items-center justify-between rounded-xl border border-border bg-surface-raised px-4 py-3 hover:border-primary transition-colors">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-lock text-<%= activeVpn > 0 ? 'success' : 'text-secondary' %> text-sm" aria-hidden="true"></i>
+              <span class="text-sm text-text-primary font-medium">VPN</span>
+            </div>
+            <span class="text-xs text-text-secondary"><%= activeVpn %> active</span>
+          </a>
+
+          <a href="/theme/modem/nat"
+            class="flex items-center justify-between rounded-xl border border-border bg-surface-raised px-4 py-3 hover:border-primary transition-colors">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-right-left text-info text-sm" aria-hidden="true"></i>
+              <span class="text-sm text-text-primary font-medium">NAT / Forwarding</span>
+            </div>
+            <span class="text-xs text-text-secondary"><%= pfCount %> rules</span>
+          </a>
+
+          <a href="/theme/modem/qos"
+            class="flex items-center justify-between rounded-xl border border-border bg-surface-raised px-4 py-3 hover:border-primary transition-colors">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-sliders text-warning text-sm" aria-hidden="true"></i>
+              <span class="text-sm text-text-primary font-medium">QoS</span>
+            </div>
+            <span class="text-xs text-text-secondary">
+              <%= (state.qos && state.qos.mode) ? state.qos.mode : '—' %>
+            </span>
+          </a>
+
+          <a href="/theme/modem/parental"
+            class="flex items-center justify-between rounded-xl border border-border bg-surface-raised px-4 py-3 hover:border-primary transition-colors">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-shield-child text-secondary text-sm" aria-hidden="true"></i>
+              <span class="text-sm text-text-primary font-medium">Parental Controls</span>
+            </div>
+            <span class="text-xs text-<%= (state.parental && state.parental.enabled) ? 'success' : 'text-secondary' %> font-medium">
+              <%= (state.parental && state.parental.enabled) ? 'On' : 'Off' %>
+            </span>
+          </a>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Active alerts -->
     <% if (unread.length > 0) { %>
     <section class="space-y-3" aria-labelledby="alerts-heading">
-      <h2 id="alerts-heading" class="text-sm font-semibold text-text-primary">Active Alerts</h2>
+      <div class="flex items-center justify-between">
+        <h2 id="alerts-heading" class="text-sm font-semibold text-text-primary">Active Alerts</h2>
+        <span class="text-xs text-text-secondary"><%= unread.length %> unread</span>
+      </div>
       <div class="space-y-2">
         <% unread.forEach(function(alert) { %>
         <%- include('../../../modules/domain/modem/AlertItem', { alert: alert }) %>
@@ -93,7 +195,7 @@
     </section>
     <% } %>
 
-    <!-- Connected devices preview -->
+    <!-- Connected devices table -->
     <section class="space-y-3" aria-labelledby="devices-heading">
       <div class="flex items-center justify-between">
         <h2 id="devices-heading" class="text-sm font-semibold text-text-primary">Connected Devices</h2>

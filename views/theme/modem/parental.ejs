@@ -1,0 +1,190 @@
+<%
+  var state    = locals.state || {};
+  var parental = state.parental || {};
+  var profiles = parental.profiles || [];
+  var devices  = state.connectedDevices || [];
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+
+  var activeProfiles = profiles.filter(function(p){ return p.enabled && !p.pauseNow; }).length;
+  var pausedProfiles = profiles.filter(function(p){ return p.pauseNow; }).length;
+
+  var allCategories = [
+    { id: 'ADULT',           label: 'Adult Content',    icon: 'fa-solid fa-ban'         },
+    { id: 'GAMBLING',        label: 'Gambling',         icon: 'fa-solid fa-dice'        },
+    { id: 'SOCIAL_MEDIA',    label: 'Social Media',     icon: 'fa-solid fa-hashtag'     },
+    { id: 'GAMING',          label: 'Gaming',           icon: 'fa-solid fa-gamepad'     },
+    { id: 'STREAMING_VIDEO', label: 'Video Streaming',  icon: 'fa-solid fa-play'        },
+    { id: 'STREAMING_MUSIC', label: 'Music Streaming',  icon: 'fa-solid fa-music'       },
+    { id: 'NEWS',            label: 'News',             icon: 'fa-solid fa-newspaper'   },
+    { id: 'SHOPPING',        label: 'Shopping',         icon: 'fa-solid fa-bag-shopping'},
+    { id: 'VIOLENCE',        label: 'Violence',         icon: 'fa-solid fa-skull'       },
+    { id: 'DRUGS',           label: 'Drugs',            icon: 'fa-solid fa-pills'       },
+  ];
+
+  var days = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+%>
+
+<%- include('./_nav', { activePage: 'parental', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- Global Settings -->
+    <section class="space-y-3" aria-labelledby="parental-global-heading">
+      <h2 id="parental-global-heading" class="text-sm font-semibold text-text-primary">Global Settings</h2>
+      <div class="rounded-xl border border-border bg-surface-raised divide-y divide-border">
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div>
+            <p class="text-sm font-medium text-text-primary">Parental Controls</p>
+            <p class="text-xs text-text-secondary mt-0.5">
+              <%= profiles.length %> profile<%= profiles.length !== 1 ? 's' : '' %> configured · <%= activeProfiles %> active
+            </p>
+          </div>
+          <button type="button" role="switch" aria-checked="<%= parental.enabled ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+              <%= parental.enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= parental.enabled ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
+        </div>
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div>
+            <p class="text-sm font-medium text-text-primary">Safe DNS Filtering</p>
+            <p class="text-xs text-text-secondary mt-0.5">Block adult content network-wide via DNS (all devices, including without a profile)</p>
+          </div>
+          <button type="button" role="switch" aria-checked="<%= parental.safeDns ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+              <%= parental.safeDns ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= parental.safeDns ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paused alert -->
+    <% if (pausedProfiles > 0) { %>
+    <div class="flex items-center gap-3 rounded-xl border border-error/30 bg-error/5 px-4 py-3">
+      <i class="fa-solid fa-pause text-error shrink-0" aria-hidden="true"></i>
+      <div class="flex-1">
+        <p class="text-xs font-semibold text-text-primary"><%= pausedProfiles %> profile<%= pausedProfiles !== 1 ? 's' : '' %> paused — internet access blocked</p>
+      </div>
+      <button type="button" class="text-xs text-primary hover:underline font-medium">Resume All</button>
+    </div>
+    <% } %>
+
+    <!-- Profiles -->
+    <section class="space-y-3" aria-labelledby="profiles-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="profiles-heading" class="text-sm font-semibold text-text-primary">Profiles</h2>
+        <span class="text-xs text-text-secondary"><%= profiles.length %> configured</span>
+      </div>
+
+      <% if (profiles.length > 0) { %>
+      <div class="space-y-4">
+        <% profiles.forEach(function(profile) { %>
+        <div class="rounded-xl border border-border bg-surface-raised overflow-hidden">
+          <%- include('../../../modules/domain/modem/ParentalProfileCard', { profile: profile, allDevices: devices }) %>
+          <div class="border-t border-border px-5 py-3 flex items-center justify-between bg-surface-base">
+            <div class="flex gap-2">
+              <% if (profile.pauseNow) { %>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg bg-success/10 border border-success/30 text-success text-xs font-medium px-3 py-1.5 hover:bg-success/20 transition-colors">
+                <i class="fa-solid fa-play text-xs" aria-hidden="true"></i> Resume
+              </button>
+              <% } else { %>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-border text-text-secondary text-xs font-medium px-3 py-1.5 hover:bg-surface-overlay transition-colors">
+                <i class="fa-solid fa-pause text-xs" aria-hidden="true"></i> Pause Now
+              </button>
+              <% } %>
+            </div>
+            <button type="button" class="text-xs text-error hover:underline">Delete Profile</button>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+    </section>
+
+    <!-- Add Profile form -->
+    <section class="space-y-3" aria-labelledby="add-profile-heading">
+      <h2 id="add-profile-heading" class="text-sm font-semibold text-text-primary">Add New Profile</h2>
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-5 space-y-5">
+
+        <!-- Name + limit -->
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Profile Name</label>
+            <input type="text" placeholder="e.g. Kids Profile" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Daily Screen Limit (minutes)</label>
+            <input type="number" placeholder="Unlimited if blank" min="10" max="1440" class="<%= inp %>">
+          </div>
+        </div>
+
+        <!-- Assign devices -->
+        <div class="space-y-2 pt-3 border-t border-border">
+          <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wide">Assign Devices</label>
+          <p class="text-xs text-text-secondary">Select which devices will be managed by this profile.</p>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <% devices.filter(function(d){ return !d.isBlocked; }).forEach(function(dev) { %>
+            <label class="flex items-center gap-3 rounded-lg border border-border bg-surface-raised px-3 py-2.5 cursor-pointer hover:border-primary transition-colors">
+              <input type="checkbox" class="rounded border-border text-primary">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-text-primary truncate"><%= dev.customName || dev.hostname %></p>
+                <p class="text-xs font-mono text-text-secondary"><%= dev.mac %></p>
+              </div>
+            </label>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- Blocked categories -->
+        <div class="space-y-2 pt-3 border-t border-border">
+          <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wide">Block Content Categories</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <% allCategories.forEach(function(cat) { %>
+            <label class="flex items-center gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 cursor-pointer hover:border-error/40 hover:bg-error/5 transition-colors">
+              <input type="checkbox" class="rounded border-border text-error">
+              <i class="<%= cat.icon %> text-text-secondary text-xs shrink-0" aria-hidden="true"></i>
+              <span class="text-xs text-text-primary"><%= cat.label %></span>
+            </label>
+            <% }); %>
+          </div>
+        </div>
+
+        <!-- Custom blocked domains -->
+        <div class="space-y-2 pt-3 border-t border-border">
+          <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wide">Custom Blocked Domains</label>
+          <textarea rows="3" placeholder="One domain per line, e.g.&#10;tiktok.com&#10;reddit.com"
+            class="<%= inp %> resize-none font-mono text-xs"></textarea>
+        </div>
+
+        <!-- Schedule builder -->
+        <div class="space-y-2 pt-3 border-t border-border">
+          <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wide">Internet Schedule</label>
+          <p class="text-xs text-text-secondary">Restrict internet access to these time windows. Leave blank for 24/7 access.</p>
+          <div class="space-y-2">
+            <% days.forEach(function(day) { %>
+            <div class="flex items-center gap-3">
+              <span class="text-xs font-medium text-text-secondary w-8"><%= day %></span>
+              <input type="checkbox" class="rounded border-border text-primary">
+              <input type="time" value="07:00" class="rounded-lg border border-border bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-border-focus focus:outline-none">
+              <span class="text-xs text-text-secondary">–</span>
+              <input type="time" value="21:00" class="rounded-lg border border-border bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-border-focus focus:outline-none">
+            </div>
+            <% }); %>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-border">
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Clear</button>
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Create Profile
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<%- include('./_nav-close') %>

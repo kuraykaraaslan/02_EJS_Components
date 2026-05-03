@@ -107,8 +107,8 @@ const systemStatusCardItem: ShowcaseItem = {
   <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
     <div class="flex items-start justify-between">
       <div>
-        <p class="text-sm font-semibold text-text-primary">ASUS-RT-AX88U</p>
-        <p class="text-xs text-text-secondary mt-0.5">ASUS RT-AX88U · HW 1.0</p>
+        <p class="text-sm font-semibold text-text-primary">KONNECT-KT-3535n</p>
+        <p class="text-xs text-text-secondary mt-0.5">KONNECT KT-3535n · HW 1.0</p>
       </div>
       <div class="text-right">
         <p class="text-lg font-bold tabular-nums text-success">52°C</p>
@@ -152,8 +152,8 @@ const systemStatusCardItem: ShowcaseItem = {
   <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
     <div class="flex items-start justify-between">
       <div>
-        <p class="text-sm font-semibold text-text-primary">ASUS-RT-AX88U</p>
-        <p class="text-xs text-text-secondary mt-0.5">ASUS RT-AX88U · HW 1.0</p>
+        <p class="text-sm font-semibold text-text-primary">KONNECT-KT-3535n</p>
+        <p class="text-xs text-text-secondary mt-0.5">KONNECT KT-3535n · HW 1.0</p>
       </div>
       <div class="text-right">
         <p class="text-lg font-bold tabular-nums text-warning">67°C</p>

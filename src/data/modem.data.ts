@@ -2,7 +2,7 @@ import type { RouterState } from '../types/modem';
 
 export const modemState: RouterState = {
   system: {
-    model: { manufacturer: 'ASUS', model: 'RT-AX88U', hardware: '1.0', serial: 'A1B2C3D4E5F6' },
+    model: { manufacturer: 'KONNECT', model: 'KT-3535n', hardware: '1.0', serial: 'A1B2C3D4E5F6' },
     firmware: {
       currentVersion: '3.0.0.4.388.24198',
       latestVersion:  '3.0.0.4.390.10020',
@@ -26,7 +26,7 @@ export const modemState: RouterState = {
       ntpEnabled:    true,
       uptimeSeconds: 1_209_600, // 14 days
     },
-    hostname:  'ASUS-RT-AX88U',
+    hostname:  'KONNECT-KT-3535n',
     wanMac:    'AA:BB:CC:DD:EE:01',
     lanMac:    'AA:BB:CC:DD:EE:02',
     wifiMac24: 'AA:BB:CC:DD:EE:03',

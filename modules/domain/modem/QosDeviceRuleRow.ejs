@@ -1,0 +1,35 @@
+<%
+  var _rule = locals.rule || {};
+
+  var priorityMeta = {
+    HIGHEST: { label: 'Highest', text: 'text-error',          bg: 'bg-error/10',      border: 'border-error/20'   },
+    HIGH:    { label: 'High',    text: 'text-warning',        bg: 'bg-warning/10',    border: 'border-warning/20' },
+    MEDIUM:  { label: 'Medium',  text: 'text-info',           bg: 'bg-info/10',       border: 'border-info/20'    },
+    LOW:     { label: 'Low',     text: 'text-success',        bg: 'bg-success/10',    border: 'border-success/20' },
+    LOWEST:  { label: 'Lowest',  text: 'text-text-secondary', bg: 'bg-surface-overlay', border: 'border-border'   },
+  };
+  var pm = priorityMeta[_rule.priority] || priorityMeta.MEDIUM;
+
+  function kbps(k) {
+    if (!k) return '—';
+    if (k >= 1000) return (k / 1000).toFixed(0) + ' Mbps';
+    return k + ' Kbps';
+  }
+%>
+<tr class="border-t border-border hover:bg-surface-raised transition-colors">
+  <td class="py-3 px-4">
+    <p class="text-sm font-medium text-text-primary"><%= _rule.name %></p>
+    <p class="text-xs font-mono text-text-secondary mt-0.5"><%= _rule.mac %></p>
+  </td>
+  <td class="py-3 px-4">
+    <span class="inline-flex items-center rounded-full border text-xs px-2.5 py-1 font-medium <%= pm.text %> <%= pm.bg %> <%= pm.border %>">
+      <%= pm.label %>
+    </span>
+  </td>
+  <td class="py-3 px-4 hidden md:table-cell text-xs tabular-nums text-text-secondary">
+    <i class="fa-solid fa-arrow-up text-info" aria-hidden="true"></i> <%= kbps(_rule.uploadLimitKbps) %>
+  </td>
+  <td class="py-3 px-4 hidden md:table-cell text-xs tabular-nums text-text-secondary">
+    <i class="fa-solid fa-arrow-down text-success" aria-hidden="true"></i> <%= kbps(_rule.downloadLimitKbps) %>
+  </td>
+</tr>

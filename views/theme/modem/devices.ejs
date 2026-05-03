@@ -1,24 +1,84 @@
 <%
   var state   = locals.state   || {};
   var devices = state.connectedDevices || [];
+  var traffic = state.traffic  || {};
   var filter  = locals.filter  || 'ALL';
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
 
   var filtered = filter === 'WIRED'   ? devices.filter(function(d){ return d.connectionType === 'WIRED'; })
                : filter === 'WIFI'    ? devices.filter(function(d){ return d.connectionType !== 'WIRED'; })
                : filter === 'BLOCKED' ? devices.filter(function(d){ return d.isBlocked; })
+               : filter === 'STATIC'  ? devices.filter(function(d){ return d.isStatic; })
                : devices;
+
+  var wiredCount   = devices.filter(function(d){ return d.connectionType === 'WIRED'; }).length;
+  var wifiCount    = devices.filter(function(d){ return d.connectionType !== 'WIRED'; }).length;
+  var blockedCount = devices.filter(function(d){ return d.isBlocked; }).length;
 
   var filters = [
     { id: 'ALL',     label: 'All (' + devices.length + ')' },
-    { id: 'WIRED',   label: 'Wired' },
-    { id: 'WIFI',    label: 'Wi-Fi' },
-    { id: 'BLOCKED', label: 'Blocked' },
+    { id: 'WIRED',   label: 'Wired (' + wiredCount + ')' },
+    { id: 'WIFI',    label: 'Wi-Fi (' + wifiCount + ')' },
+    { id: 'BLOCKED', label: 'Blocked' + (blockedCount > 0 ? ' (' + blockedCount + ')' : '') },
+    { id: 'STATIC',  label: 'Static IP' },
   ];
+
+  function fmtBytes(b) {
+    if (!b) return '0 B';
+    if (b >= 1073741824) return (b / 1073741824).toFixed(1) + ' GB';
+    if (b >= 1048576)    return (b / 1048576).toFixed(0)    + ' MB';
+    return (b / 1024).toFixed(0) + ' KB';
+  }
+
+  var topDevices = (traffic.topDevices || []).slice(0, 3);
 %>
 
 <%- include('./_nav', { activePage: 'devices', state: state }) %>
 
   <div class="space-y-4">
+
+    <!-- Summary stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Total Devices</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= devices.length %></p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Wired</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= wiredCount %></p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Wireless</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= wifiCount %></p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Blocked</p>
+        <p class="text-2xl font-bold mt-1 <%= blockedCount > 0 ? 'text-error' : 'text-text-primary' %>"><%= blockedCount %></p>
+      </div>
+    </div>
+
+    <!-- Top traffic -->
+    <% if (topDevices.length > 0) { %>
+    <section class="space-y-2" aria-labelledby="top-traffic-heading">
+      <h2 id="top-traffic-heading" class="text-sm font-semibold text-text-primary">Top Traffic Consumers</h2>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <% topDevices.forEach(function(td, i) { %>
+        <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-1.5">
+          <div class="flex items-center gap-2">
+            <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary-subtle text-primary text-xs font-bold shrink-0"><%= i + 1 %></span>
+            <p class="text-sm font-medium text-text-primary truncate"><%= td.hostname %></p>
+          </div>
+          <div class="flex gap-4 text-xs text-text-secondary">
+            <span><i class="fa-solid fa-arrow-up text-info mr-1" aria-hidden="true"></i><%= fmtBytes(td.uploadBytes) %></span>
+            <span><i class="fa-solid fa-arrow-down text-success mr-1" aria-hidden="true"></i><%= fmtBytes(td.downloadBytes) %></span>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    </section>
+    <% } %>
 
     <!-- Filter tabs -->
     <div class="flex gap-2 flex-wrap" role="group" aria-label="Device filter">
@@ -33,7 +93,7 @@
       <% }); %>
     </div>
 
-    <!-- Table -->
+    <!-- Devices table with inline actions -->
     <div class="rounded-xl border border-border overflow-hidden">
       <table class="w-full text-sm">
         <thead>
@@ -43,12 +103,13 @@
             <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Connection</th>
             <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden lg:table-cell">Traffic</th>
             <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Status</th>
+            <th class="text-right py-2.5 px-4 text-xs font-medium text-text-secondary">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% if (filtered.length === 0) { %>
           <tr>
-            <td colspan="5" class="py-12 text-center text-sm text-text-secondary">No devices match this filter.</td>
+            <td colspan="6" class="py-12 text-center text-sm text-text-secondary">No devices match this filter.</td>
           </tr>
           <% } else { %>
           <% filtered.forEach(function(dev) { %>
@@ -58,6 +119,101 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Quick Device Actions info -->
+    <% if (filtered.length > 0) { %>
+    <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-3">
+      <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Bulk Actions</p>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-border text-text-secondary text-xs px-3 py-1.5 hover:bg-surface-overlay transition-colors">
+          <i class="fa-solid fa-ban text-error text-xs" aria-hidden="true"></i> Block Selected
+        </button>
+        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-border text-text-secondary text-xs px-3 py-1.5 hover:bg-surface-overlay transition-colors">
+          <i class="fa-solid fa-circle-check text-success text-xs" aria-hidden="true"></i> Unblock Selected
+        </button>
+        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-border text-text-secondary text-xs px-3 py-1.5 hover:bg-surface-overlay transition-colors">
+          <i class="fa-solid fa-arrow-rotate-right text-xs" aria-hidden="true"></i> Renew DHCP Lease
+        </button>
+        <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-border text-text-secondary text-xs px-3 py-1.5 hover:bg-surface-overlay transition-colors">
+          <i class="fa-solid fa-download text-xs" aria-hidden="true"></i> Export List
+        </button>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Rename / Assign custom name -->
+    <section class="space-y-3" aria-labelledby="rename-heading">
+      <h2 id="rename-heading" class="text-sm font-semibold text-text-primary">Rename Devices</h2>
+      <div class="rounded-xl border border-border bg-surface-raised overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">MAC Address</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Current Name</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Custom Name</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Icon Type</th>
+              <th class="py-2.5 px-4"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% devices.forEach(function(dev) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+              <td class="py-2.5 px-4 font-mono text-xs text-text-secondary"><%= dev.mac %></td>
+              <td class="py-2.5 px-4 text-xs text-text-secondary"><%= dev.hostname %></td>
+              <td class="py-2.5 px-4">
+                <input type="text" value="<%= dev.customName || '' %>" placeholder="<%= dev.hostname %>"
+                  class="w-full rounded-lg border border-border bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-border-focus focus:outline-none transition-colors">
+              </td>
+              <td class="py-2.5 px-4">
+                <select class="rounded-lg border border-border bg-surface-base px-2 py-1 text-xs text-text-primary focus:border-border-focus focus:outline-none transition-colors">
+                  <% ['computer','laptop','phone','tablet','tv','gaming','printer','camera','iot','router','nas','unknown'].forEach(function(t) { %>
+                  <option value="<%= t %>" <%= dev.iconType === t ? 'selected' : '' %>><%= t %></option>
+                  <% }); %>
+                </select>
+              </td>
+              <td class="py-2.5 px-4">
+                <button type="button" class="text-xs text-primary hover:underline font-medium">Save</button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Add Static DHCP Binding -->
+    <section class="space-y-3" aria-labelledby="static-binding-heading">
+      <h2 id="static-binding-heading" class="text-sm font-semibold text-text-primary">Add Static DHCP Binding</h2>
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-4 space-y-3">
+        <p class="text-xs text-text-secondary">Reserve a permanent IP address for a device based on its MAC address.</p>
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Device</label>
+            <select class="<%= sel %>">
+              <option value="">— Select or enter MAC —</option>
+              <% devices.forEach(function(dev) { %>
+              <option value="<%= dev.mac %>">
+                <%= (dev.customName || dev.hostname) %> (<%= dev.mac %>)
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Reserved IP</label>
+            <input type="text" placeholder="192.168.1.x" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Hostname (optional)</label>
+            <input type="text" placeholder="my-device" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Binding
+          </button>
+        </div>
+      </div>
+    </section>
 
   </div>
 

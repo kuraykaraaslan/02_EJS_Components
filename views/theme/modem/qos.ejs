@@ -1,0 +1,226 @@
+<%
+  var state       = locals.state || {};
+  var qos         = state.qos   || {};
+  var bw          = qos.bandwidth   || {};
+  var deviceRules = qos.deviceRules || [];
+  var appRules    = qos.appRules    || [];
+  var devices     = state.connectedDevices || [];
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+
+  function kbps(k) {
+    if (!k) return '—';
+    if (k >= 1000) return (k / 1000).toFixed(0) + ' Mbps';
+    return k + ' Kbps';
+  }
+
+  var modeIcon = { ADAPTIVE: 'fa-solid fa-wand-magic-sparkles', MANUAL: 'fa-solid fa-sliders', DISABLED: 'fa-solid fa-circle-xmark', TRADITIONAL: 'fa-solid fa-list-ol' };
+  var modeDesc = {
+    ADAPTIVE:    'Automatically prioritizes traffic in real-time using AI-based traffic analysis.',
+    TRADITIONAL: 'Classic QoS using weighted fair queuing — no traffic classification.',
+    MANUAL:      'Apply custom device and application rules in priority order.',
+    DISABLED:    'No traffic shaping — all packets treated equally.',
+  };
+
+  var appPriMeta = {
+    HIGHEST: { text: 'text-error',          bg: 'bg-error/10',        border: 'border-error/20'   },
+    HIGH:    { text: 'text-warning',         bg: 'bg-warning/10',      border: 'border-warning/20' },
+    MEDIUM:  { text: 'text-info',            bg: 'bg-info/10',         border: 'border-info/20'    },
+    LOW:     { text: 'text-success',         bg: 'bg-success/10',      border: 'border-success/20' },
+    LOWEST:  { text: 'text-text-secondary',  bg: 'bg-surface-overlay', border: 'border-border'     },
+  };
+  var appCatIcon = { GAMING: 'fa-solid fa-gamepad', VOIP: 'fa-solid fa-phone', STREAMING: 'fa-solid fa-play', WEB_BROWSING: 'fa-solid fa-globe', FILE_SHARING: 'fa-solid fa-share-nodes', BACKUP: 'fa-solid fa-cloud-arrow-up' };
+%>
+
+<%- include('./_nav', { activePage: 'qos', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- Mode Selector -->
+    <section class="space-y-3" aria-labelledby="qos-mode-heading">
+      <h2 id="qos-mode-heading" class="text-sm font-semibold text-text-primary">QoS Mode</h2>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <% ['ADAPTIVE','TRADITIONAL','MANUAL','DISABLED'].forEach(function(m) {
+          var active = qos.mode === m;
+          var pm = appPriMeta.MEDIUM;
+        %>
+        <button type="button"
+          class="flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors
+            <%= active ? 'border-primary bg-primary-subtle' : 'border-border bg-surface-raised hover:border-primary/50 hover:bg-surface-overlay' %>">
+          <i class="<%= modeIcon[m] || 'fa-solid fa-sliders' %> <%= active ? 'text-primary' : 'text-text-secondary' %>" aria-hidden="true"></i>
+          <div>
+            <p class="text-sm font-semibold <%= active ? 'text-primary' : 'text-text-primary' %>"><%= m %></p>
+            <p class="text-xs text-text-secondary mt-0.5 leading-relaxed">
+              <% if (m === 'ADAPTIVE')    { %>Smart traffic prioritization<% } %>
+              <% if (m === 'TRADITIONAL') { %>Weighted fair queuing<% } %>
+              <% if (m === 'MANUAL')      { %>Custom rules only<% } %>
+              <% if (m === 'DISABLED')    { %>No shaping applied<% } %>
+            </p>
+          </div>
+        </button>
+        <% }); %>
+      </div>
+      <% if (qos.mode !== 'DISABLED') { %>
+      <div class="rounded-xl border border-border bg-surface-raised px-4 py-3 text-xs text-text-secondary">
+        <i class="fa-solid fa-circle-info text-info mr-1.5" aria-hidden="true"></i>
+        <strong class="text-text-primary">Active:</strong> <%= modeDesc[qos.mode] || '' %>
+      </div>
+      <% } %>
+    </section>
+
+    <!-- Bandwidth Profile -->
+    <section class="space-y-3" aria-labelledby="qos-bw-heading">
+      <h2 id="qos-bw-heading" class="text-sm font-semibold text-text-primary">Bandwidth Profile</h2>
+      <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
+        <p class="text-xs text-text-secondary">Set your ISP's contracted bandwidth so QoS can optimally shape traffic.</p>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">
+              <i class="fa-solid fa-arrow-up text-info mr-1" aria-hidden="true"></i> Upload Speed (Mbps)
+            </label>
+            <input type="number" value="<%= bw.uploadKbps ? Math.round(bw.uploadKbps / 1000) : '' %>"
+              placeholder="e.g. 100" min="1" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">
+              <i class="fa-solid fa-arrow-down text-success mr-1" aria-hidden="true"></i> Download Speed (Mbps)
+            </label>
+            <input type="number" value="<%= bw.downloadKbps ? Math.round(bw.downloadKbps / 1000) : '' %>"
+              placeholder="e.g. 500" min="1" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex items-center gap-3 rounded-lg border border-info/30 bg-info/5 px-3 py-2">
+          <i class="fa-solid fa-circle-info text-info shrink-0 text-xs" aria-hidden="true"></i>
+          <p class="text-xs text-text-secondary">Run a speed test to measure your actual bandwidth. Enter the results above for best accuracy.</p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-border">
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Discard</button>
+          <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Device Priority Rules -->
+    <section class="space-y-3" aria-labelledby="qos-devices-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="qos-devices-heading" class="text-sm font-semibold text-text-primary">Device Priority Rules</h2>
+        <span class="text-xs text-text-secondary"><%= deviceRules.length %> rule<%= deviceRules.length !== 1 ? 's' : '' %></span>
+      </div>
+
+      <!-- Add device rule form -->
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-4 space-y-3">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Add Device Rule</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Device</label>
+            <select class="<%= sel %>">
+              <option value="">— Select device —</option>
+              <% devices.forEach(function(dev) { %>
+              <option value="<%= dev.mac %>">
+                <%= (dev.customName || dev.hostname) %> (<%= dev.mac %>)
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Priority</label>
+            <select class="<%= sel %>">
+              <option value="HIGHEST">Highest</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM" selected>Medium</option>
+              <option value="LOW">Low</option>
+              <option value="LOWEST">Lowest</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Upload Limit (Mbps)</label>
+            <input type="number" placeholder="Unlimited" min="1" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Download Limit (Mbps)</label>
+            <input type="number" placeholder="Unlimited" min="1" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Rule
+          </button>
+        </div>
+      </div>
+
+      <% if (deviceRules.length > 0) { %>
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Device</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Priority</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Upload Limit</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Download Limit</th>
+              <th class="text-right py-2.5 px-4 text-xs font-medium text-text-secondary">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% deviceRules.forEach(function(rule) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors group">
+              <td class="py-3 px-4">
+                <p class="text-sm font-medium text-text-primary"><%= rule.name %></p>
+                <p class="text-xs font-mono text-text-secondary mt-0.5"><%= rule.mac %></p>
+              </td>
+              <td class="py-3 px-4">
+                <%
+                  var pm = appPriMeta[rule.priority] || appPriMeta.MEDIUM;
+                %>
+                <span class="inline-flex items-center rounded-full border text-xs px-2.5 py-1 font-medium <%= pm.text %> <%= pm.bg %> <%= pm.border %>">
+                  <%= rule.priority %>
+                </span>
+              </td>
+              <td class="py-3 px-4 hidden md:table-cell text-xs tabular-nums text-text-secondary"><%= kbps(rule.uploadLimitKbps) %></td>
+              <td class="py-3 px-4 hidden md:table-cell text-xs tabular-nums text-text-secondary"><%= kbps(rule.downloadLimitKbps) %></td>
+              <td class="py-3 px-4 text-right">
+                <button type="button" class="text-xs text-error opacity-0 group-hover:opacity-100 hover:underline transition-opacity">Remove</button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </section>
+
+    <!-- Application Category Priorities -->
+    <section class="space-y-3" aria-labelledby="qos-app-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="qos-app-heading" class="text-sm font-semibold text-text-primary">Application Category Priorities</h2>
+        <span class="text-xs text-text-secondary">Click to change priority</span>
+      </div>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <% var allCats = ['GAMING','VOIP','STREAMING','WEB_BROWSING','FILE_SHARING','BACKUP'];
+           allCats.forEach(function(cat) {
+             var existing = appRules.find(function(r){ return r.category === cat; });
+             var pri = existing ? existing.priority : 'MEDIUM';
+             var pm = appPriMeta[pri] || appPriMeta.MEDIUM;
+             var icon = appCatIcon[cat] || 'fa-solid fa-layer-group';
+        %>
+        <div class="rounded-xl border border-border bg-surface-raised p-3 space-y-2">
+          <div class="flex items-center gap-2">
+            <i class="<%= icon %> <%= pm.text %> text-sm w-4 shrink-0" aria-hidden="true"></i>
+            <p class="text-sm font-medium text-text-primary flex-1"><%= cat.replace(/_/g, ' ') %></p>
+          </div>
+          <select class="<%= sel %> text-xs py-1.5">
+            <% ['HIGHEST','HIGH','MEDIUM','LOW','LOWEST'].forEach(function(p) { %>
+            <option value="<%= p %>" <%= pri === p ? 'selected' : '' %>><%= p %></option>
+            <% }); %>
+          </select>
+        </div>
+        <% }); %>
+      </div>
+      <div class="flex justify-end pt-1">
+        <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save App Priorities</button>
+      </div>
+    </section>
+
+  </div>
+
+<%- include('./_nav-close') %>

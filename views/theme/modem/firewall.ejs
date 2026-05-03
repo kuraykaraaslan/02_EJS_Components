@@ -3,54 +3,164 @@
   var firewall = state.firewall || {};
   var rules    = firewall.rules || [];
   var macRules = firewall.macFilterRules || [];
+  var ipRules  = firewall.ipFilterRules  || [];
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
 %>
 
 <%- include('./_nav', { activePage: 'firewall', state: state }) %>
 
   <div class="space-y-6">
 
-    <!-- Status overview -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <% [
-        { label: 'Firewall',       val: firewall.enabled       ? 'Enabled'  : 'Disabled', ok: firewall.enabled       },
-        { label: 'DoS Protection', val: firewall.dosProtection ? 'Active'   : 'Off',      ok: firewall.dosProtection },
-        { label: 'Ping from WAN',  val: firewall.pingFromWan   ? 'Allowed'  : 'Blocked',  ok: !firewall.pingFromWan  },
-        { label: 'SSH from WAN',   val: firewall.sshFromWan    ? 'Allowed'  : 'Blocked',  ok: !firewall.sshFromWan   },
-      ].forEach(function(c) { %>
-      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
-        <p class="text-xs text-text-secondary"><%= c.label %></p>
-        <p class="text-sm font-semibold mt-1 <%= c.ok ? 'text-success' : 'text-error' %>"><%= c.val %></p>
+    <!-- Global Firewall Settings -->
+    <section class="space-y-3" aria-labelledby="fw-global-heading">
+      <h2 id="fw-global-heading" class="text-sm font-semibold text-text-primary">Global Settings</h2>
+      <div class="rounded-xl border border-border bg-surface-raised divide-y divide-border">
+        <% [
+          { label: 'Firewall Protection',     desc: 'Master on/off for all firewall rules',              val: firewall.enabled,       warn: false },
+          { label: 'DoS / DDoS Protection',   desc: 'Block SYN floods, ICMP floods and port scans',     val: firewall.dosProtection, warn: false },
+          { label: 'IPv6 Firewall',           desc: 'Apply rules to IPv6 traffic',                      val: firewall.ipv6Enabled,   warn: false },
+          { label: 'Log Dropped Packets',     desc: 'Record blocked traffic in the system log',         val: firewall.logDropped,    warn: false },
+        ].forEach(function(row) { %>
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div>
+            <p class="text-sm font-medium text-text-primary"><%= row.label %></p>
+            <p class="text-xs text-text-secondary mt-0.5"><%= row.desc %></p>
+          </div>
+          <button type="button" role="switch" aria-checked="<%= row.val ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 ml-4
+              <%= row.val ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= row.val ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
+        </div>
+        <% }); %>
       </div>
-      <% }); %>
-    </div>
+    </section>
 
-    <!-- Rules -->
+    <!-- WAN Access Control -->
+    <section class="space-y-3" aria-labelledby="wan-access-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="wan-access-heading" class="text-sm font-semibold text-text-primary">WAN Access Control</h2>
+        <span class="text-xs text-info flex items-center gap-1">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i> Applies to inbound traffic from WAN
+        </span>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised divide-y divide-border">
+        <% [
+          { label: 'Ping from WAN',       desc: 'Allow ICMP echo requests from the internet',  icon: 'fa-solid fa-circle-dot',  val: firewall.pingFromWan,  safe: !firewall.pingFromWan  },
+          { label: 'SSH from WAN',        desc: 'Allow SSH connections from the internet',      icon: 'fa-solid fa-terminal',    val: firewall.sshFromWan,   safe: !firewall.sshFromWan   },
+          { label: 'Web UI from WAN',     desc: 'Allow admin panel access from the internet',   icon: 'fa-solid fa-globe',       val: firewall.httpFromWan,  safe: !firewall.httpFromWan  },
+        ].forEach(function(row) { %>
+        <div class="flex items-center justify-between px-4 py-3.5">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <i class="<%= row.icon %> w-4 text-text-secondary text-sm shrink-0" aria-hidden="true"></i>
+            <div>
+              <p class="text-sm font-medium text-text-primary"><%= row.label %></p>
+              <p class="text-xs text-text-secondary mt-0.5"><%= row.desc %></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 shrink-0 ml-4">
+            <span class="text-xs font-semibold <%= row.safe ? 'text-success' : 'text-error' %>">
+              <%= row.val ? 'Allowed' : 'Blocked' %>
+            </span>
+            <button type="button" role="switch" aria-checked="<%= row.val ? 'true' : 'false' %>"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+                <%= row.val ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+              <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= row.val ? 'translate-x-6' : 'translate-x-1' %>"></span>
+            </button>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+    </section>
+
+    <!-- Custom Rules -->
     <section class="space-y-3" aria-labelledby="fw-rules-heading">
-      <h2 id="fw-rules-heading" class="text-sm font-semibold text-text-primary">Rules (<%= rules.length %>)</h2>
-      <% if (rules.length === 0) { %>
-      <p class="text-sm text-text-secondary py-4">No custom firewall rules configured.</p>
-      <% } else { %>
+      <div class="flex items-center justify-between">
+        <h2 id="fw-rules-heading" class="text-sm font-semibold text-text-primary">Custom Rules</h2>
+        <span class="text-xs text-text-secondary"><%= rules.length %> rule<%= rules.length !== 1 ? 's' : '' %></span>
+      </div>
+
+      <!-- Add rule form -->
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-4 space-y-3">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Add Rule</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Rule Name</label>
+            <input type="text" placeholder="e.g. Block Telnet" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Direction</label>
+            <select class="<%= sel %>">
+              <option value="WAN_IN">WAN → LAN (inbound)</option>
+              <option value="WAN_OUT">LAN → WAN (outbound)</option>
+              <option value="LAN_IN">LAN inbound</option>
+              <option value="LAN_OUT">LAN outbound</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Protocol</label>
+            <select class="<%= sel %>">
+              <option value="ALL">All</option>
+              <option value="TCP">TCP</option>
+              <option value="UDP">UDP</option>
+              <option value="TCP_UDP">TCP + UDP</option>
+              <option value="ICMP">ICMP</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Action</label>
+            <select class="<%= sel %>">
+              <option value="DROP">Drop (silent)</option>
+              <option value="REJECT">Reject (RST)</option>
+              <option value="ACCEPT">Accept</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Source IP / CIDR</label>
+            <input type="text" placeholder="Any (leave blank)" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Source Port</label>
+            <input type="text" placeholder="Any (leave blank)" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Dest. IP / CIDR</label>
+            <input type="text" placeholder="Any (leave blank)" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Dest. Port</label>
+            <input type="text" placeholder="e.g. 23 or 8000-8080" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Rule
+          </button>
+        </div>
+      </div>
+
+      <% if (rules.length > 0) { %>
       <div class="rounded-xl border border-border overflow-hidden">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-surface-raised border-b border-border">
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">#</th>
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Name</th>
-              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Target</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Direction</th>
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Proto</th>
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden lg:table-cell">Dst Port</th>
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Action</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">State</th>
             </tr>
           </thead>
           <tbody>
             <% rules.sort(function(a, b){ return a.order - b.order; }).forEach(function(rule) { %>
-            <tr class="border-t border-border hover:bg-surface-raised transition-colors<%= !rule.enabled ? ' opacity-50' : '' %>">
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors group<%= !rule.enabled ? ' opacity-50' : '' %>">
               <td class="py-3 px-4 text-xs text-text-secondary tabular-nums"><%= rule.order %></td>
               <td class="py-3 px-4">
                 <span class="font-medium text-text-primary"><%= rule.name %></span>
-                <% if (!rule.enabled) { %>
-                <span class="ml-1.5 text-xs text-text-secondary">(off)</span>
-                <% } %>
               </td>
               <td class="py-3 px-4 hidden md:table-cell text-xs font-mono text-text-secondary"><%= rule.target %></td>
               <td class="py-3 px-4 hidden md:table-cell text-xs text-text-secondary"><%= rule.protocol %></td>
@@ -60,8 +170,7 @@
                   var dpStr = dp === null || dp === undefined ? '*'
                             : (typeof dp === 'object' && dp.start !== undefined) ? dp.start + '–' + dp.end
                             : String(dp);
-                %>
-                <%= dpStr %>
+                %><%= dpStr %>
               </td>
               <td class="py-3 px-4">
                 <span class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium
@@ -71,43 +180,145 @@
                   <%= rule.action %>
                 </span>
               </td>
+              <td class="py-3 px-4">
+                <button type="button" role="switch" aria-checked="<%= rule.enabled ? 'true' : 'false' %>"
+                  class="relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors
+                    <%= rule.enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+                  <span class="inline-block h-3 w-3 rounded-full bg-white shadow transition-transform <%= rule.enabled ? 'translate-x-5' : 'translate-x-1' %>"></span>
+                </button>
+              </td>
             </tr>
             <% }); %>
           </tbody>
         </table>
+      </div>
+      <% } else { %>
+      <div class="rounded-xl border border-border p-6 text-center text-sm text-text-secondary">
+        No custom rules yet. Add one above.
       </div>
       <% } %>
     </section>
 
     <!-- MAC Filter -->
     <section class="space-y-3" aria-labelledby="mac-filter-heading">
-      <div class="flex items-center gap-3">
-        <h2 id="mac-filter-heading" class="text-sm font-semibold text-text-primary">MAC Filter</h2>
-        <span class="text-xs bg-surface-overlay border border-border rounded px-2 py-0.5 text-text-secondary font-mono">
-          <%= firewall.macFilterMode %>
-        </span>
+      <h2 id="mac-filter-heading" class="text-sm font-semibold text-text-primary">MAC Address Filter</h2>
+
+      <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-text-secondary mb-1.5">Filter Mode</label>
+          <div class="flex gap-2">
+            <% ['BLACKLIST','WHITELIST'].forEach(function(m) { %>
+            <button type="button"
+              class="rounded-lg border px-4 py-2 text-sm font-medium transition-colors
+                <%= firewall.macFilterMode === m
+                  ? 'bg-primary text-primary-fg border-primary'
+                  : 'border-border text-text-secondary hover:bg-surface-overlay' %>">
+              <%= m === 'BLACKLIST' ? 'Blacklist (block listed)' : 'Whitelist (allow listed only)' %>
+            </button>
+            <% }); %>
+          </div>
+          <p class="text-xs text-text-secondary mt-2">
+            <% if (firewall.macFilterMode === 'BLACKLIST') { %>
+            Block only the listed MAC addresses. All others are allowed.
+            <% } else { %>
+            Allow only the listed MAC addresses. All others are blocked.
+            <% } %>
+          </p>
+        </div>
       </div>
-      <% if (macRules.length === 0) { %>
-      <p class="text-sm text-text-secondary">No MAC filter entries.</p>
-      <% } else { %>
+
+      <% if (macRules.length > 0) { %>
       <div class="rounded-xl border border-border overflow-hidden">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-surface-raised border-b border-border">
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">MAC Address</th>
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Comment</th>
+              <th class="text-right py-2.5 px-4 text-xs font-medium text-text-secondary">Action</th>
             </tr>
           </thead>
           <tbody>
             <% macRules.forEach(function(r) { %>
-            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors group">
               <td class="py-3 px-4 font-mono text-sm text-text-primary"><%= r.mac %></td>
               <td class="py-3 px-4 text-sm text-text-secondary"><%= r.comment || '—' %></td>
+              <td class="py-3 px-4 text-right">
+                <button type="button" class="text-xs text-error opacity-0 group-hover:opacity-100 hover:underline transition-opacity">Remove</button>
+              </td>
             </tr>
             <% }); %>
           </tbody>
         </table>
       </div>
+      <% } %>
+
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-4 space-y-3">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Add MAC Entry</p>
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">MAC Address</label>
+            <input type="text" placeholder="AA:BB:CC:DD:EE:FF" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Comment <span class="font-normal opacity-60">(optional)</span></label>
+            <input type="text" placeholder="e.g. Neighbour's device" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary-subtle text-primary border border-primary/20 px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-primary-fg transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Entry
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- IP Filter Rules -->
+    <section class="space-y-3" aria-labelledby="ip-filter-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="ip-filter-heading" class="text-sm font-semibold text-text-primary">IP Filter Rules</h2>
+        <span class="text-xs text-text-secondary"><%= ipRules.length %> rule<%= ipRules.length !== 1 ? 's' : '' %></span>
+      </div>
+
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-4 space-y-3">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Add IP Filter</p>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Direction</label>
+            <select class="<%= sel %>">
+              <option value="UPLOAD">Outbound</option>
+              <option value="DOWNLOAD">Inbound</option>
+              <option value="BOTH">Both</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">IP Range / CIDR</label>
+            <input type="text" placeholder="e.g. 192.168.1.0/24" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Protocol</label>
+            <select class="<%= sel %>">
+              <option value="ALL">All</option>
+              <option value="TCP">TCP</option>
+              <option value="UDP">UDP</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Action</label>
+            <select class="<%= sel %>">
+              <option value="DROP">Drop</option>
+              <option value="ACCEPT">Accept</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary-subtle text-primary border border-primary/20 px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-primary-fg transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Filter
+          </button>
+        </div>
+      </div>
+
+      <% if (ipRules.length === 0) { %>
+      <p class="text-sm text-text-secondary">No IP filter rules configured.</p>
       <% } %>
     </section>
 

@@ -1,122 +1,325 @@
 <%
-  var state = locals.state || {};
-  var wan   = state.wan   || {};
-  var lan   = state.lan   || {};
-  var dhcp  = lan.dhcp    || {};
-  var flash = locals.flash || '';
+  var state   = locals.state   || {};
+  var wan     = state.wan      || {};
+  var lan     = state.lan      || {};
+  var dhcp    = lan.dhcp       || {};
+  var traffic = state.traffic  || {};
+  var ifaces  = traffic.interfaces || [];
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+
+  function fmtBytes(b) {
+    if (!b) return '0 B';
+    if (b >= 1099511627776) return (b / 1099511627776).toFixed(1) + ' TB';
+    if (b >= 1073741824)    return (b / 1073741824).toFixed(1)    + ' GB';
+    if (b >= 1048576)       return (b / 1048576).toFixed(0)       + ' MB';
+    return (b / 1024).toFixed(0) + ' KB';
+  }
 %>
 
 <%- include('./_nav', { activePage: 'network', state: state }) %>
 
   <div class="space-y-6">
 
-    <% if (flash) { %>
-    <div class="rounded-lg bg-success/10 border border-success/30 px-4 py-2.5 text-sm text-success font-medium">
-      <i class="fa-solid fa-check mr-1" aria-hidden="true"></i><%= flash %>
-    </div>
-    <% } %>
-
     <!-- WAN Status -->
-    <section class="space-y-3" aria-labelledby="wan-heading">
-      <h2 id="wan-heading" class="text-sm font-semibold text-text-primary">WAN Status</h2>
+    <section class="space-y-3" aria-labelledby="wan-status-heading">
+      <h2 id="wan-status-heading" class="text-sm font-semibold text-text-primary">WAN Status</h2>
       <%- include('../../../modules/domain/modem/WanStatusCard', { wan: wan }) %>
-      <% if (wan.pppoe) { %>
-      <div class="rounded-xl border border-border bg-surface-raised p-4">
-        <p class="text-xs font-semibold text-text-primary mb-3">PPPoE</p>
-        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-xs">
-          <div>
-            <dt class="text-text-secondary">Username</dt>
-            <dd class="mt-0.5 font-mono text-text-primary"><%= wan.pppoe.username %></dd>
-          </div>
-          <div>
-            <dt class="text-text-secondary">Service Name</dt>
-            <dd class="mt-0.5 font-mono text-text-primary"><%= wan.pppoe.serviceName || '—' %></dd>
-          </div>
-          <div>
-            <dt class="text-text-secondary">MTU</dt>
-            <dd class="mt-0.5 font-mono text-text-primary"><%= wan.pppoe.mtu %></dd>
-          </div>
-          <div>
-            <dt class="text-text-secondary">Connect on Demand</dt>
-            <dd class="mt-0.5 text-text-primary font-medium"><%= wan.pppoe.connectOnDemand ? 'Yes' : 'No' %></dd>
-          </div>
-        </dl>
-      </div>
-      <% } %>
     </section>
 
-    <!-- LAN -->
-    <section class="space-y-3" aria-labelledby="lan-heading">
-      <h2 id="lan-heading" class="text-sm font-semibold text-text-primary">LAN Configuration</h2>
-      <div class="rounded-xl border border-border bg-surface-raised p-5">
-        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
-          <% [
-            { label: 'LAN IP',     value: lan.ipAddress  },
-            { label: 'Subnet',     value: lan.subnetMask },
-            { label: 'IPv6',       value: lan.ipv6Enabled ? 'Enabled' : 'Disabled' },
-          ].forEach(function(f) { %>
-          <div>
-            <dt class="text-xs text-text-secondary"><%= f.label %></dt>
-            <dd class="mt-0.5 font-mono font-medium text-text-primary"><%= f.value || '—' %></dd>
+    <!-- WAN Configuration -->
+    <section class="space-y-3" aria-labelledby="wan-cfg-heading">
+      <div class="flex items-center justify-between">
+        <h2 id="wan-cfg-heading" class="text-sm font-semibold text-text-primary">WAN Configuration</h2>
+        <span class="text-xs text-text-secondary">Changes require a reconnect</span>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-5">
+
+        <!-- Connection type tabs -->
+        <div>
+          <label class="block text-xs font-medium text-text-secondary mb-2">Connection Type</label>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="WAN connection type">
+            <% ['DHCP', 'PPPoE', 'Static', 'L2TP', 'PPTP'].forEach(function(t) {
+              var active = wan.connectionType === t.toUpperCase().replace('PPPOE','PPPOE');
+            %>
+            <button type="button"
+              class="rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors
+                <%= active
+                  ? 'bg-primary text-primary-fg border-primary'
+                  : 'border-border text-text-secondary hover:text-text-primary hover:bg-surface-overlay' %>">
+              <%= t %>
+            </button>
+            <% }); %>
           </div>
-          <% }); %>
-        </dl>
+        </div>
+
+        <!-- PPPoE Fields -->
+        <% if (wan.pppoe) { %>
+        <div class="space-y-4 pt-2 border-t border-border">
+          <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">PPPoE Settings</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Username</label>
+              <input type="text" value="<%= wan.pppoe.username %>" class="<%= inp %>">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Password</label>
+              <div class="relative">
+                <input type="password" value="<%= wan.pppoe.password %>" class="<%= inp %> pr-10">
+                <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary">
+                  <i class="fa-solid fa-eye text-xs" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Service Name <span class="font-normal opacity-60">(optional)</span></label>
+              <input type="text" value="<%= wan.pppoe.serviceName || '' %>" placeholder="Leave blank if not required" class="<%= inp %>">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">MTU</label>
+              <input type="number" value="<%= wan.pppoe.mtu %>" min="576" max="1500" class="<%= inp %>">
+            </div>
+          </div>
+          <div class="flex items-center justify-between rounded-lg border border-border bg-surface-base px-4 py-3">
+            <div>
+              <p class="text-sm font-medium text-text-primary">Connect on Demand</p>
+              <p class="text-xs text-text-secondary mt-0.5">Only connect when traffic is detected</p>
+            </div>
+            <button type="button" role="switch" aria-checked="<%= wan.pppoe.connectOnDemand ? 'true' : 'false' %>"
+              class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+                <%= wan.pppoe.connectOnDemand ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+              <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= wan.pppoe.connectOnDemand ? 'translate-x-6' : 'translate-x-1' %>"></span>
+            </button>
+          </div>
+          <% if (wan.pppoe.connectOnDemand) { %>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Max Idle Time (minutes)</label>
+            <input type="number" value="<%= wan.pppoe.maxIdleMinutes || 5 %>" min="1" max="60" class="<%= inp %>">
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+
+        <!-- DNS Override -->
+        <div class="space-y-4 pt-2 border-t border-border">
+          <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">DNS Override</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Primary DNS</label>
+              <input type="text" value="<%= wan.dnsPrimary || '' %>" placeholder="e.g. 8.8.8.8" class="<%= inp %>">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">Secondary DNS</label>
+              <input type="text" value="<%= wan.dnsSecondary || '' %>" placeholder="e.g. 8.8.4.4" class="<%= inp %>">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-text-secondary mb-1.5">IPv6 DNS</label>
+              <input type="text" value="" placeholder="e.g. 2001:4860:4860::8888" class="<%= inp %>">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between gap-2 pt-3 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg border border-error/30 bg-error/5 px-3 py-2 text-xs font-medium text-error hover:bg-error/10 transition-colors">
+            <i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Reconnect WAN
+          </button>
+          <div class="flex gap-2">
+            <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Discard</button>
+            <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save & Reconnect</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- DHCP -->
+    <!-- LAN Configuration -->
+    <section class="space-y-3" aria-labelledby="lan-cfg-heading">
+      <h2 id="lan-cfg-heading" class="text-sm font-semibold text-text-primary">LAN Configuration</h2>
+      <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">LAN IP Address</label>
+            <input type="text" value="<%= lan.ipAddress || '192.168.1.1' %>" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Subnet Mask</label>
+            <select class="<%= sel %>">
+              <option value="255.255.255.0" <%= lan.subnetMask === '255.255.255.0' ? 'selected' : '' %>>/24 — 255.255.255.0</option>
+              <option value="255.255.0.0"   <%= lan.subnetMask === '255.255.0.0'   ? 'selected' : '' %>>/16 — 255.255.0.0</option>
+              <option value="255.0.0.0"     <%= lan.subnetMask === '255.0.0.0'     ? 'selected' : '' %>>/8  — 255.0.0.0</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Hostname</label>
+            <input type="text" value="<%= (state.system && state.system.hostname) || '' %>" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex items-center justify-between rounded-lg border border-border bg-surface-base px-4 py-3">
+          <div>
+            <p class="text-sm font-medium text-text-primary">Enable IPv6</p>
+            <p class="text-xs text-text-secondary mt-0.5">DHCPv6 / SLAAC prefix delegation</p>
+          </div>
+          <button type="button" role="switch" aria-checked="<%= lan.ipv6Enabled ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+              <%= lan.ipv6Enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= lan.ipv6Enabled ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
+        </div>
+        <% if (lan.ipv6Enabled && wan.ipv6Address) { %>
+        <div>
+          <label class="block text-xs font-medium text-text-secondary mb-1.5">WAN IPv6 Address (read-only)</label>
+          <input type="text" value="<%= wan.ipv6Address %>" readonly class="<%= inp %> opacity-60 cursor-default">
+        </div>
+        <% } %>
+        <div class="flex justify-end gap-2 pt-3 border-t border-border">
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Discard</button>
+          <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save Changes</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- DHCP Server -->
     <section class="space-y-3" aria-labelledby="dhcp-heading">
       <h2 id="dhcp-heading" class="text-sm font-semibold text-text-primary">DHCP Server</h2>
       <div class="rounded-xl border border-border bg-surface-raised p-5 space-y-4">
         <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-text-primary">Status</span>
-          <span class="inline-flex items-center gap-1.5 rounded-full border text-xs px-2.5 py-1 font-medium
-            <%= dhcp.enabled ? 'bg-success/10 border-success/30 text-success' : 'bg-surface-overlay border-border text-text-secondary' %>">
-            <span class="h-1.5 w-1.5 rounded-full flex-shrink-0 <%= dhcp.enabled ? 'bg-success' : 'bg-text-secondary' %>"></span>
-            <%= dhcp.enabled ? 'Enabled' : 'Disabled' %>
-          </span>
-        </div>
-        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-3 text-sm">
-          <% [
-            { label: 'Pool Start',    value: dhcp.poolStart          },
-            { label: 'Pool End',      value: dhcp.poolEnd            },
-            { label: 'Lease Time',    value: dhcp.leaseHours + 'h'   },
-            { label: 'Gateway',       value: dhcp.gateway            },
-            { label: 'DNS Primary',   value: dhcp.dnsPrimary         },
-            { label: 'DNS Secondary', value: dhcp.dnsSecondary || '—' },
-          ].forEach(function(f) { %>
           <div>
-            <dt class="text-xs text-text-secondary"><%= f.label %></dt>
-            <dd class="mt-0.5 font-mono font-medium text-text-primary"><%= f.value || '—' %></dd>
+            <p class="text-sm font-medium text-text-primary">DHCP Server</p>
+            <p class="text-xs text-text-secondary mt-0.5">Automatically assign IP addresses to devices</p>
           </div>
-          <% }); %>
-        </dl>
+          <button type="button" role="switch" aria-checked="<%= dhcp.enabled ? 'true' : 'false' %>"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30
+              <%= dhcp.enabled ? 'bg-primary' : 'bg-surface-sunken border border-border' %>">
+            <span class="inline-block h-4 w-4 rounded-full bg-white shadow transition-transform <%= dhcp.enabled ? 'translate-x-6' : 'translate-x-1' %>"></span>
+          </button>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2 border-t border-border">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Pool Start</label>
+            <input type="text" value="<%= dhcp.poolStart || '192.168.1.100' %>" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Pool End</label>
+            <input type="text" value="<%= dhcp.poolEnd || '192.168.1.200' %>" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Lease Time (hours)</label>
+            <input type="number" value="<%= dhcp.leaseHours || 24 %>" min="1" max="720" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Gateway</label>
+            <input type="text" value="<%= dhcp.gateway || '192.168.1.1' %>" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">DNS Primary</label>
+            <input type="text" value="<%= dhcp.dnsPrimary || '192.168.1.1' %>" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">DNS Secondary</label>
+            <input type="text" value="<%= dhcp.dnsSecondary || '' %>" placeholder="Optional" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-border">
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Discard</button>
+          <button type="button" class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">Save Changes</button>
+        </div>
       </div>
     </section>
 
-    <!-- Static Bindings -->
-    <% if (dhcp.staticBindings && dhcp.staticBindings.length > 0) { %>
+    <!-- Static DHCP Bindings -->
     <section class="space-y-3" aria-labelledby="bindings-heading">
-      <h2 id="bindings-heading" class="text-sm font-semibold text-text-primary">Static DHCP Bindings</h2>
+      <div class="flex items-center justify-between">
+        <h2 id="bindings-heading" class="text-sm font-semibold text-text-primary">Static DHCP Bindings</h2>
+        <span class="text-xs text-text-secondary"><%= (dhcp.staticBindings || []).length %> entries</span>
+      </div>
+      <% if (dhcp.staticBindings && dhcp.staticBindings.length > 0) { %>
       <div class="rounded-xl border border-border overflow-hidden">
         <table class="w-full text-sm">
           <thead>
             <tr class="bg-surface-raised border-b border-border">
               <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Hostname</th>
-              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">MAC</th>
-              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">IP</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">MAC Address</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Assigned IP</th>
+              <th class="text-right py-2.5 px-4 text-xs font-medium text-text-secondary">Action</th>
             </tr>
           </thead>
           <tbody>
-            <% dhcp.staticBindings.forEach(function(b) { %>
-            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+            <% (dhcp.staticBindings || []).forEach(function(b) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors group">
               <td class="py-3 px-4 font-medium text-text-primary"><%= b.hostname %></td>
               <td class="py-3 px-4 font-mono text-xs text-text-secondary"><%= b.mac %></td>
               <td class="py-3 px-4 font-mono text-text-primary"><%= b.ip %></td>
+              <td class="py-3 px-4 text-right">
+                <button type="button" class="text-xs text-error opacity-0 group-hover:opacity-100 hover:underline transition-opacity">Remove</button>
+              </td>
             </tr>
             <% }); %>
           </tbody>
         </table>
+      </div>
+      <% } %>
+      <!-- Add binding form -->
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-4 space-y-3">
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Add Static Binding</p>
+        <div class="grid sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">MAC Address</label>
+            <input type="text" placeholder="AA:BB:CC:DD:EE:FF" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">IP Address</label>
+            <input type="text" placeholder="192.168.1.x" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Hostname</label>
+            <input type="text" placeholder="my-device" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary-subtle text-primary border border-primary/20 px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-primary-fg transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Binding
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Traffic Statistics -->
+    <% if (ifaces.length > 0) { %>
+    <section class="space-y-3" aria-labelledby="traffic-heading">
+      <h2 id="traffic-heading" class="text-sm font-semibold text-text-primary">Traffic Statistics</h2>
+      <div class="rounded-xl border border-border overflow-hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-surface-raised border-b border-border">
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">Interface</th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">
+                <i class="fa-solid fa-arrow-up text-info mr-1" aria-hidden="true"></i>Upload
+              </th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary">
+                <i class="fa-solid fa-arrow-down text-success mr-1" aria-hidden="true"></i>Download
+              </th>
+              <th class="text-left py-2.5 px-4 text-xs font-medium text-text-secondary hidden md:table-cell">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% ifaces.forEach(function(iface) { %>
+            <tr class="border-t border-border hover:bg-surface-raised transition-colors">
+              <td class="py-3 px-4 font-mono font-medium text-text-primary text-xs"><%= iface.interface %></td>
+              <td class="py-3 px-4 text-xs tabular-nums text-text-secondary"><%= fmtBytes(iface.uploadBytes) %></td>
+              <td class="py-3 px-4 text-xs tabular-nums text-text-secondary"><%= fmtBytes(iface.downloadBytes) %></td>
+              <td class="py-3 px-4 text-xs tabular-nums text-text-secondary hidden md:table-cell">
+                <%= fmtBytes((iface.uploadBytes || 0) + (iface.downloadBytes || 0)) %>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-end">
+        <button type="button" class="inline-flex items-center gap-2 text-xs text-text-secondary hover:text-error transition-colors">
+          <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Reset Counters
+        </button>
       </div>
     </section>
     <% } %>

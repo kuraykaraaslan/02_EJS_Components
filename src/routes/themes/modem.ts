@@ -44,10 +44,34 @@ router.get('/firewall', (_req: Request, res: Response) => {
   });
 });
 
-router.get('/advanced', (_req: Request, res: Response) => {
-  res.render('theme/modem/advanced', {
+router.get('/nat', (_req: Request, res: Response) => {
+  res.render('theme/modem/nat', {
     layout: 'layouts/blank',
-    title:  'Advanced — Modem Theme',
+    title:  'NAT / Port Forwarding — Modem Theme',
+    state:  modemState,
+  });
+});
+
+router.get('/vpn', (_req: Request, res: Response) => {
+  res.render('theme/modem/vpn', {
+    layout: 'layouts/blank',
+    title:  'VPN — Modem Theme',
+    state:  modemState,
+  });
+});
+
+router.get('/qos', (_req: Request, res: Response) => {
+  res.render('theme/modem/qos', {
+    layout: 'layouts/blank',
+    title:  'QoS — Modem Theme',
+    state:  modemState,
+  });
+});
+
+router.get('/parental', (_req: Request, res: Response) => {
+  res.render('theme/modem/parental', {
+    layout: 'layouts/blank',
+    title:  'Parental Controls — Modem Theme',
     state:  modemState,
   });
 });
@@ -58,6 +82,14 @@ router.get('/system', (req: Request, res: Response) => {
     title:     'System — Modem Theme',
     state:     modemState,
     logFilter: (req.query.logFilter as string) || 'ALL',
+  });
+});
+
+router.get('/settings', (_req: Request, res: Response) => {
+  res.render('theme/modem/settings', {
+    layout: 'layouts/blank',
+    title:  'Settings — Modem Theme',
+    state:  modemState,
   });
 });
 

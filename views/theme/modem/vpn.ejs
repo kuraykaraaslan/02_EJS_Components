@@ -1,0 +1,157 @@
+<%
+  var state   = locals.state || {};
+  var vpnList = state.vpn    || [];
+
+  var inp = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+  var sel = 'w-full rounded-lg border border-border bg-surface-base px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors';
+
+  var activeCount = vpnList.filter(function(v){ return v.status === 'ACTIVE'; }).length;
+  var serverCount = vpnList.filter(function(v){ return v.role   === 'SERVER'; }).length;
+  var wgServer    = vpnList.find(function(v){ return v.type === 'WIREGUARD' && v.role === 'SERVER'; });
+%>
+
+<%- include('./_nav', { activePage: 'vpn', state: state }) %>
+
+  <div class="space-y-6">
+
+    <!-- Summary -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Instances</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= vpnList.length %></p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">Active</p>
+        <p class="text-2xl font-bold mt-1 <%= activeCount > 0 ? 'text-success' : 'text-text-primary' %>"><%= activeCount %></p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">WireGuard</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= vpnList.filter(function(v){ return v.type === 'WIREGUARD'; }).length %></p>
+      </div>
+      <div class="rounded-xl border border-border bg-surface-raised p-3 text-center">
+        <p class="text-xs text-text-secondary">OpenVPN</p>
+        <p class="text-2xl font-bold text-text-primary mt-1"><%= vpnList.filter(function(v){ return v.type === 'OPENVPN'; }).length %></p>
+      </div>
+    </div>
+
+    <!-- VPN Instances -->
+    <section class="space-y-3" aria-labelledby="vpn-list-heading">
+      <h2 id="vpn-list-heading" class="text-sm font-semibold text-text-primary">VPN Instances</h2>
+      <% if (vpnList.length === 0) { %>
+      <div class="rounded-xl border border-border p-10 text-center">
+        <i class="fa-solid fa-lock text-3xl text-text-secondary mb-3" aria-hidden="true"></i>
+        <p class="text-sm text-text-secondary">No VPN instances configured yet.</p>
+      </div>
+      <% } else { %>
+      <div class="space-y-4">
+        <% vpnList.forEach(function(vpn) { %>
+        <div class="space-y-0">
+          <%- include('../../../modules/domain/modem/VpnInstanceCard', { vpn: vpn }) %>
+          <div class="rounded-b-xl border-x border-b border-border bg-surface-base px-4 py-3 flex items-center justify-between">
+            <div class="flex gap-2">
+              <% if (vpn.status === 'ACTIVE') { %>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-error/30 bg-error/5 text-error text-xs font-medium px-3 py-1.5 hover:bg-error/10 transition-colors">
+                <i class="fa-solid fa-stop text-xs" aria-hidden="true"></i> Stop
+              </button>
+              <% } else { %>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-success/30 bg-success/5 text-success text-xs font-medium px-3 py-1.5 hover:bg-success/10 transition-colors">
+                <i class="fa-solid fa-play text-xs" aria-hidden="true"></i> Start
+              </button>
+              <% } %>
+              <button type="button" class="inline-flex items-center gap-1.5 rounded-lg border border-border text-text-secondary text-xs font-medium px-3 py-1.5 hover:bg-surface-overlay transition-colors">
+                <i class="fa-solid fa-rotate text-xs" aria-hidden="true"></i> Restart
+              </button>
+            </div>
+            <button type="button" class="text-xs text-error hover:underline">Delete</button>
+          </div>
+        </div>
+        <% }); %>
+      </div>
+      <% } %>
+    </section>
+
+    <!-- Add WireGuard Peer (only if WG server exists) -->
+    <% if (wgServer) { %>
+    <section class="space-y-3" aria-labelledby="wg-peer-heading">
+      <h2 id="wg-peer-heading" class="text-sm font-semibold text-text-primary">Add WireGuard Peer</h2>
+      <p class="text-xs text-text-secondary">Add a client device to the <strong class="text-text-primary"><%= wgServer.name %></strong> server.</p>
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-5 space-y-4">
+        <div class="grid sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Peer Name</label>
+            <input type="text" placeholder="e.g. Laptop, Phone" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Peer Public Key</label>
+            <input type="text" placeholder="Base64 public key" class="<%= inp %> font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Allowed IPs</label>
+            <input type="text" placeholder="e.g. 10.0.0.2/32" value="10.0.0.2/32" class="<%= inp %> font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Endpoint <span class="font-normal opacity-60">(optional, for client-to-server)</span></label>
+            <input type="text" placeholder="host:port" class="<%= inp %> font-mono text-xs">
+          </div>
+        </div>
+        <div class="rounded-xl border border-border bg-surface-raised p-4 space-y-2">
+          <p class="text-xs font-semibold text-text-secondary uppercase tracking-wide">Or Generate Config for New Peer</p>
+          <p class="text-xs text-text-secondary">
+            Generate a complete WireGuard config file for a new peer (key pair auto-created on the router).
+          </p>
+          <div class="flex gap-2">
+            <input type="text" placeholder="Peer name" class="<%= inp %> flex-1">
+            <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary-subtle text-primary border border-primary/20 px-4 py-2 text-sm font-semibold hover:bg-primary hover:text-primary-fg whitespace-nowrap transition-colors">
+              <i class="fa-solid fa-file-code text-xs" aria-hidden="true"></i> Generate
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-border">
+          <button type="button" class="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary hover:bg-surface-overlay transition-colors">Discard</button>
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Add Peer
+          </button>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Create New VPN Instance -->
+    <section class="space-y-3" aria-labelledby="vpn-new-heading">
+      <h2 id="vpn-new-heading" class="text-sm font-semibold text-text-primary">Create New Instance</h2>
+      <div class="rounded-xl border border-dashed border-border bg-surface-base p-5 space-y-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Name</label>
+            <input type="text" placeholder="e.g. Home VPN" class="<%= inp %>">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Type</label>
+            <select class="<%= sel %>">
+              <option value="WIREGUARD">WireGuard</option>
+              <option value="OPENVPN">OpenVPN</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Role</label>
+            <select class="<%= sel %>">
+              <option value="SERVER">Server (host)</option>
+              <option value="CLIENT">Client (connect to remote)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-text-secondary mb-1.5">Listen Port</label>
+            <input type="number" value="51820" min="1024" max="65535" class="<%= inp %>">
+          </div>
+        </div>
+        <div class="flex justify-end pt-2 border-t border-border">
+          <button type="button" class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg hover:bg-primary-hover transition-colors">
+            <i class="fa-solid fa-plus text-xs" aria-hidden="true"></i> Create VPN
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<%- include('./_nav-close') %>
