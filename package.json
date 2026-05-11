@@ -5,22 +5,26 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:css\"",
     "dev:server": "nodemon --watch src --watch views --watch modules --ext ts,ejs --exec tsx src/server.ts",
-    "dev:css": "postcss public/css/input.css -o public/css/app.css --watch",
+    "dev:css": "postcss public/assets/css/input.css -o public/assets/css/app.css --watch",
     "build": "npm run build:css && tsc",
-    "build:css": "postcss public/css/input.css -o public/css/app.css",
+    "build:css": "postcss public/assets/css/input.css -o public/assets/css/app.css",
     "start": "node dist/server.js",
     "audit:tokens": "bash scripts/audit-tokens.sh",
     "audit:raw": "bash scripts/audit-raw-output.sh",
     "lint:spacing": "bash scripts/lint-spacing.sh",
     "dead-partials": "bash scripts/find-dead-partials.sh",
+    "screenshots": "node scripts/take-screenshots.js",
     "ci": "npm run build && npm run audit:tokens && npm run audit:raw && npm run lint:spacing && npm run dead-partials"
   },
   "dependencies": {
+    "@types/qrcode": "^1.5.6",
     "cookie-parser": "^1.4.7",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
     "express-ejs-layouts": "^2.5.1",
     "helmet": "^8.1.0",
+    "puppeteer": "^24.43.0",
+    "qrcode": "^1.5.4",
     "zod": "^3.23.0"
   },
   "devDependencies": {

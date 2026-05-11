@@ -116,18 +116,29 @@
     </h2>
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <% var themes = [
-        { label: 'Common Theme',    href: '/theme/common', desc: 'Shared layouts and account pages' },
-        { label: 'Email Templates', href: '/theme/common/email', desc: 'Transactional email previews' },
-        { label: 'Modem Theme',     href: '/theme/modem',  desc: 'Router/modem admin UI' },
+        { label: 'Common Theme',    href: '/theme/common',       desc: 'Shared layouts and account pages',   screenshot: '/assets/img/screenshot-common.png' },
+        { label: 'Modem Theme',     href: '/theme/modem',        desc: 'Router/modem admin UI',              screenshot: '/assets/img/screenshot-modem.png' },
+        { label: 'API Docs',        href: '/theme/api-doc',      desc: 'Developer API documentation portal', screenshot: '/assets/img/screenshot-api-doc.png' },
+        { label: 'Invoice',         href: '/theme/invoice',      desc: 'Invoice and billing documents',      screenshot: '/assets/img/screenshot-invoice.png' },
       ]; %>
       <% themes.forEach(function(t) { %>
         <a
           href="<%= t.href %>"
-          class="group flex flex-col gap-1 rounded-lg border border-border bg-surface-base hover:border-primary hover:bg-primary-subtle px-4 py-3 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
+          class="group flex flex-col rounded-lg border border-border bg-surface-base overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus"
         >
-          <span class="text-sm font-medium text-text-primary group-hover:text-primary transition-colors"><%= t.label %></span>
-          <span class="text-xs text-text-secondary"><%= t.desc %></span>
-          <span class="text-[10px] font-mono text-text-disabled mt-0.5"><%= t.href %></span>
+          <div class="relative w-full overflow-hidden bg-surface-sunken" style="aspect-ratio:16/9;">
+            <img
+              src="<%= t.screenshot %>"
+              alt="<%= t.label %>"
+              class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+          </div>
+          <div class="flex flex-col gap-1 px-4 py-3">
+            <span class="text-sm font-medium text-text-primary group-hover:text-primary transition-colors"><%= t.label %></span>
+            <span class="text-xs text-text-secondary"><%= t.desc %></span>
+            <span class="text-[10px] font-mono text-text-disabled mt-0.5"><%= t.href %></span>
+          </div>
         </a>
       <% }); %>
     </div>

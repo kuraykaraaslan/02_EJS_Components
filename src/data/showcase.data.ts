@@ -6,7 +6,6 @@ import { buildAppPatternsData }      from './sections/app-patterns.showcase';
 import { buildDomainCommonData }     from './sections/domain-common.showcase';
 import { buildDomainModemData }      from './sections/domain-modem.showcase';
 import { buildApiDocDomainData }     from './sections/domain-api-doc.showcase';
-import { buildDomainRestaurantData } from './sections/domain-restaurant.showcase';
 import { buildDomainInvoiceData }    from './sections/domain-invoice.showcase';
 import { buildDomainUpsData }        from './sections/domain-ups.showcase';
 
@@ -18,7 +17,6 @@ export const SHOWCASE_DATA: ShowcaseItem[] = [
   ...buildDomainCommonData(),
   ...buildDomainModemData(),
   ...buildApiDocDomainData(),
-  ...buildDomainRestaurantData(),
   ...buildDomainInvoiceData(),
   ...buildDomainUpsData(),
 ];

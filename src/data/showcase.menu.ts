@@ -181,19 +181,6 @@ const NAV_GROUPS: ShowcaseNavGroup[] = [
     ],
   },
   {
-    label: 'Domain · Restaurant',
-    collapsible: true,
-    items: [
-      { id: 'restaurant-menu-category-badge', title: 'MenuCategoryBadge', category: 'Domain · Restaurant', abbr: 'MC', status: 'stable', since: '0.1' },
-      { id: 'restaurant-allergen-badge',      title: 'AllergenBadge',     category: 'Domain · Restaurant', abbr: 'AB', status: 'stable', since: '0.1' },
-      { id: 'restaurant-dietary-badge',       title: 'DietaryBadge',      category: 'Domain · Restaurant', abbr: 'DB', status: 'stable', since: '0.1' },
-      { id: 'restaurant-table-badge',         title: 'TableBadge',        category: 'Domain · Restaurant', abbr: 'TB', status: 'stable', since: '0.1' },
-      { id: 'restaurant-menu-item-card',      title: 'MenuItemCard',      category: 'Domain · Restaurant', abbr: 'MI', status: 'stable', since: '0.1' },
-      { id: 'restaurant-menu-item-row',       title: 'MenuItemRow',       category: 'Domain · Restaurant', abbr: 'MR', status: 'stable', since: '0.1' },
-      { id: 'restaurant-qr-code-display',     title: 'QrCodeDisplay',     category: 'Domain · Restaurant', abbr: 'QR', status: 'stable', since: '0.1' },
-    ],
-  },
-  {
     label: 'Domain · Invoice',
     collapsible: true,
     items: [
@@ -225,7 +212,6 @@ const NAV_GROUPS: ShowcaseNavGroup[] = [
       { id: 'theme-email',      title: 'Email Templates',  category: 'Theme', abbr: 'ET', href: '/theme/common/email' },
       { id: 'theme-modem',      title: 'Modem Theme',      category: 'Theme', abbr: 'MT', href: '/theme/modem'        },
       { id: 'theme-api-doc',    title: 'API Doc Theme',    category: 'Theme', abbr: 'AD', href: '/theme/api-doc'      },
-      { id: 'theme-restaurant', title: 'Restaurant Theme', category: 'Theme', abbr: 'RT', href: '/theme/restaurant'   },
       { id: 'theme-invoice',    title: 'Invoice Theme',    category: 'Theme', abbr: 'IV', href: '/theme/invoice'      },
       { id: 'theme-ups',        title: 'UPS Theme',        category: 'Theme', abbr: 'UP', href: '/theme/ups'          },
     ],

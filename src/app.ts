@@ -24,7 +24,7 @@ app.locals.site = {
 
 // Asset versioning — MD5 hash of compiled CSS for cache-busting
 try {
-  const cssPath = path.join(__dirname, '../public/css/app.css');
+  const cssPath = path.join(__dirname, '../public/assets/css/app.css');
   const cssContent = fs.readFileSync(cssPath);
   app.locals.assetVersion = crypto.createHash('md5').update(cssContent).digest('hex').slice(0, 8);
 } catch {
@@ -52,6 +52,7 @@ app.use(express.urlencoded({ extended: true }));
 // CSP disabled — project uses CDN assets (FA, Leaflet, Chart.js)
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(expressLayouts);
+app.set('layout', 'layouts/main');
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Per-request locals for all views
